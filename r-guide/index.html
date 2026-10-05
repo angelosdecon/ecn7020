@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Using R: a short guide — ECN7020, SOAS Economics</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<link rel="stylesheet" href="../assets/seminar.css">
+<link rel="stylesheet" href="../assets/seminar.css?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
 </head>
@@ -18,9 +18,10 @@
 window.SEMINAR = {
   id: "r-guide",
   progress: false,
+  numbers: false,
   eyebrow: "ECN7020 · Getting started",
   title: "Using R: A Short Guide",
-  lead: "The handful of things you need to use R in this module. Every example runs in this page: press Run, then change the code and run it again.",
+  lead: "A longer companion to the R quick guide: what R and RStudio are, the basic commands, working with data, and what to do when you get an error. Sections marked Try it have code you can run and change; there is nothing to answer except the exercise in section 10.",
   note: "<b>R is a tool here, not the subject.</b> It is not formally assessed in ECN7020, but it helps with the essay and later modules. You can use this site without installing anything; to work on your own computer, install R and RStudio (section 1).",
   footer: "ECN7020 · Using R: a short guide",
   readyText: "R is ready. Press Run on any example.",
@@ -91,8 +92,12 @@ window.SEMINAR = {
 
     { type: "section", eyebrow: "Part 3", title: "When Things Go Wrong" },
 
-    { type: "r", hints: false, title: "10. Read the error message",
-      desc: "Errors are normal: everyone gets them all the time. The message usually tells you what is wrong. This code has three mistakes. Run it, read the message, fix the mistake it points to, and run it again until it works.",
+    { type: "r", title: "10. Exercise: read the error message",
+      desc: "Errors are normal: everyone gets them all the time, and the message usually tells you what is wrong. The three lines below should print the mean of <code>temps</code> twice and then the mean rounded to one decimal place, but each line has one mistake. Run the code, read the message, fix the mistake it points to, and run again until all three lines work.",
+      h1: "R checks the whole box for missing commas and brackets before it runs anything, so the first message you see is about line 3. After you fix that, the messages come one line at a time.",
+      h2: "<ul><li>Line 3: look at what separates the two arguments of <code>round()</code>.</li><li>Line 1: R is case-sensitive, so check the capital letter in the function name.</li><li>Line 2: check the spelling of the object's name.</li></ul>",
+      h3: "mean(temps)\nmean(temps)\nround(mean(temps), digits = 1)",
+      h3note: "Line 1: <code>Mean</code> should be <code>mean</code> (could not find function). Line 2: <code>temp</code> should be <code>temps</code> (object not found). Line 3: a comma was missing between the arguments (unexpected symbol). The output is 32.4 three times.",
       code: "Mean(temps)\nmean(temp)\nround(mean(temps) digits = 1)\n" },
 
     { type: "text", title: "11. Common error messages and what they mean",
@@ -147,6 +152,6 @@ window.SEMINAR = {
   ],
 };
 </script>
-<script type="module" src="../assets/seminar.js"></script>
+<script type="module" src="../assets/seminar.js?v=3"></script>
 </body>
 </html>

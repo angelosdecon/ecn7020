@@ -16,6 +16,7 @@ const editors = {};
 const timers = {};
 const steps = S.items.filter((it) => it.type !== "section" && it.type !== "text");
 const SHOW_PROGRESS = S.progress !== false;
+const SHOW_NUMBERS = S.numbers !== false; // false: no numbered circles (used by the R guide page)
 steps.forEach((s, i) => { s.n = i + 1; });
 
 // Saved answers live only in this browser. Everything still works if storage is unavailable.
@@ -75,6 +76,40 @@ function buildPage() {
     }
   });
   updateProgress();
+  buildQuickGuide();
+}
+
+// The "R quick guide" side panel. Its text is in quickguide.js, shared by every page.
+async function buildQuickGuide() {
+  if (S.quickGuide === false) return;
+  let html;
+  try {
+    html = (await import("./quickguide.js?v=3")).default;
+  } catch (e) {
+    return; // the page works without it
+  }
+  const btn = el("button", "qg-open", "R quick guide");
+  btn.id = "qg-open";
+  btn.setAttribute("aria-expanded", "false");
+  btn.setAttribute("aria-controls", "qg-panel");
+  const panel = el("aside", "qg-panel",
+    '<button class="qg-close" id="qg-close" aria-label="Close the R quick guide">Close ✕</button>' +
+    '<div class="qg-body prose">' + html +
+    '<p><a href="' + (S.guide || "../r-guide/") + '" target="_blank" rel="noopener">Open the full R guide, with examples you can run</a></p></div>');
+  panel.id = "qg-panel";
+  panel.setAttribute("aria-label", "R quick guide");
+  panel.hidden = true;
+  document.body.appendChild(btn);
+  document.body.appendChild(panel);
+  const setOpen = (open) => {
+    panel.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    document.body.classList.toggle("qg-is-open", open);
+    if (open) document.getElementById("qg-close").focus(); else btn.focus();
+  };
+  btn.addEventListener("click", () => setOpen(panel.hidden));
+  document.getElementById("qg-close").addEventListener("click", () => setOpen(false));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !panel.hidden) setOpen(false); });
 }
 
 function buildSection(it) {
@@ -102,7 +137,7 @@ function buildStep(s) {
   const lock = (lvl) => (delayFor(lvl) > 0 ? ' <span class="timer" id="t' + lvl + "-" + s.n + '">' + delayFor(lvl) + "s</span>" : "");
   const dis = (lvl) => (delayFor(lvl) > 0 ? " disabled" : "");
   let html =
-    '<div class="step-head"><div class="step-num">' + s.n + '</div><div class="step-title">' + s.title + "</div>" +
+    '<div class="step-head">' + (SHOW_NUMBERS ? '<div class="step-num">' + s.n + "</div>" : "") + '<div class="step-title">' + s.title + "</div>" +
     '<div class="step-tag">' + (!hasHints ? "Try it" : isR ? "R code" : "Written") + "</div></div>" +
     '<div class="step-body"><div class="step-desc">' + s.desc + "</div>";
   if (hasHints) html +=

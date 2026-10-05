@@ -10,6 +10,7 @@ Live site: https://angelosdecon.github.io/ecn7020/
 index.html           landing page: one card per problem set
 assets/seminar.css   shared design (matches the lecture slides)
 assets/seminar.js    shared engine: builds the page, runs R, hints, progress
+assets/quickguide.js the text of the "R quick guide" side panel shown on every page
 ps1/index.html       Problem Set 1: the questions, hints, solutions and data
 r-guide/index.html   a short guide to R for students, with runnable examples
 ```
@@ -37,3 +38,11 @@ Each problem set is one folder with one `index.html`, so its address is `.../ecn
 - Add `hints: false` to an `r` step to make it a runnable example with no hints, and `progress: false` in the `window.SEMINAR` block to hide the progress bar (both used in the R guide).
 
 The second hint unlocks 10 seconds after the first is opened, and the solution 10 seconds after the second is opened. Change this with `hintDelays: [10, 10]` in the `window.SEMINAR` block; `[0, 0]` unlocks everything at once.
+
+## The R quick guide panel
+
+Every page has an "R quick guide" button at the bottom right. It opens a side panel that explains what R and RStudio are, how an R instruction is built and the basic commands, so students can read it while they work. Its text is in `assets/quickguide.js`: edit it there and it changes on every page. Add `quickGuide: false` to a page's `window.SEMINAR` block to leave it out.
+
+## After changing a file in assets/
+
+Browsers keep a saved copy of these files for a while. Each page loads them as `seminar.css?v=3` and `seminar.js?v=3`. When you change a file in `assets/`, raise that number in the pages (and in the `quickguide.js?v=3` line inside `seminar.js`) so everyone gets the new version straight away.

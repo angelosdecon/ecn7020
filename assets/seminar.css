@@ -150,3 +150,19 @@ a.card:hover { outline: 3px solid var(--orange); }
 .prose td:first-child { white-space: nowrap; }
 .tablewrap { overflow-x: auto; }
 @media (max-width: 640px) { .prose td:first-child { white-space: normal; } }
+
+/* R quick guide: a side panel students can keep open while they work */
+.qg-open { position: fixed; right: 20px; bottom: 20px; z-index: 20; font: inherit; font-size: 15px; font-weight: 700; padding: 12px 20px; border: none; border-radius: 999px; background: var(--ink); color: var(--white); cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); }
+.qg-open:hover { background: var(--orange); }
+.qg-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 30; width: min(460px, 100vw); background: var(--white); border-left: 2px solid var(--ink); overflow-y: auto; box-shadow: -6px 0 24px rgba(0, 0, 0, 0.18); }
+.qg-panel[hidden] { display: none; }
+.qg-close { position: sticky; top: 0; display: block; width: 100%; text-align: right; font: inherit; font-size: 14px; font-weight: 700; padding: 12px 20px; border: none; border-bottom: 1px solid var(--line); background: var(--white); color: var(--ink); cursor: pointer; }
+.qg-close:hover { color: var(--orange); }
+.qg-body { padding: 18px 22px 40px; font-size: 15px; }
+.qg-body h2 { font-size: 26px; line-height: 1.15; margin-bottom: 6px; }
+.qg-body .qg-lead { color: var(--grey); }
+.qg-body h3 { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--orange); margin: 22px 0 8px; }
+.qg-body td:first-child { white-space: normal; width: 44%; }
+.qg-open:focus-visible, .qg-close:focus-visible, .hint-btn:focus-visible, .run-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+/* On a wide screen the page moves over, so the panel does not cover the work */
+@media (min-width: 1180px) { body.qg-is-open { padding-right: 460px; } body.qg-is-open .qg-open { display: none; } }
