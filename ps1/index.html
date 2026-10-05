@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Problem Set 1 — ECN7020, SOAS Economics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="../assets/seminar.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
+</head>
+<body>
+<noscript>This page needs JavaScript to run R in your browser.</noscript>
+
+<script>
+// ---------------------------------------------------------------------------
+// Problem Set 1: content only. The layout and the R engine are in ../assets/.
+// To make another problem set, copy this folder and edit the text below.
+// ---------------------------------------------------------------------------
+
+const GDP_CSV = `Country,Code,Region,GDP_per_capita_PPS
+Germany,DE11,Stuttgart,46300
+Germany,DE12,Karlsruhe,39600
+Germany,DE13,Freiburg,34600
+Germany,DE14,Tübingen,39300
+Germany,DE21,Oberbayern,52200
+Germany,DE22,Niederbayern,35300
+Germany,DE23,Oberpfalz,37700
+Germany,DE24,Oberfranken,33800
+Germany,DE25,Mittelfranken,40000
+Germany,DE26,Unterfranken,36500
+Germany,DE27,Schwaben,36100
+Germany,DE30,Berlin,35600
+Germany,DE40,Brandenburg,25900
+Germany,DE50,Bremen,44100
+Germany,DE60,Hamburg,58600
+Germany,DE71,Darmstadt,47000
+Germany,DE72,Gießen,30600
+Germany,DE73,Kassel,33600
+Germany,DE80,Mecklenburg-Vorpommern,24200
+Germany,DE91,Braunschweig,40600
+Germany,DE92,Hannover,34700
+Germany,DE93,Lüneburg,25400
+Germany,DE94,Weser-Ems,32100
+Germany,DEA1,Düsseldorf,37400
+Germany,DEA2,Köln,38500
+Germany,DEA3,Münster,30100
+Germany,DEA4,Detmold,34200
+Germany,DEA5,Arnsberg,31200
+Germany,DEB1,Koblenz,30900
+Germany,DEB2,Trier,28400
+Germany,DEB3,Rheinhessen-Pfalz,34600
+Germany,DEC0,Saarland,32700
+Germany,DED2,Dresden,27700
+Germany,DED4,Chemnitz,25500
+Germany,DED5,Leipzig,29100
+Germany,DEE0,Sachsen-Anhalt,25100
+Germany,DEF0,Schleswig-Holstein,29300
+Germany,DEG0,Thüringen,26100
+France,FR10,Île de France,51700
+France,FRB0,Centre - Val de Loire,25100
+France,FRC1,Bourgogne,24800
+France,FRC2,Franche-Comté,23000
+France,FRD1,Basse-Normandie,24200
+France,FRD2,Haute-Normandie,26300
+France,FRE1,Nord-Pas-de-Calais,24700
+France,FRE2,Picardie,22600
+France,FRF1,Alsace,28100
+France,FRF2,Champagne-Ardenne,25400
+France,FRF3,Lorraine,22600
+France,FRG0,Pays-de-la-Loire,27400
+France,FRH0,Bretagne,25800
+France,FRI1,Aquitaine,26600
+France,FRI2,Limousin,23300
+France,FRI3,Poitou-Charentes,24500
+France,FRJ1,Languedoc-Roussillon,22700
+France,FRJ2,Midi-Pyrénées,28200
+France,FRK1,Auvergne,24000
+France,FRK2,Rhône-Alpes,30500
+France,FRL0,Provence-Alpes-Côte d'Azur,28300
+France,FRM0,Corse,24800
+France,FRY1,Guadeloupe,21200
+France,FRY2,Martinique,22600
+France,FRY3,Guyane,15700
+France,FRY4,La Réunion,20300
+France,FRY5,Mayotte,9500
+UK,UKC1,Tees Valley and Durham,21100
+UK,UKC2,Northumberland and Tyne and Wear,24400
+UK,UKD1,Cumbria,26800
+UK,UKD3,Greater Manchester,27300
+UK,UKD4,Lancashire,25500
+UK,UKD6,Cheshire,37600
+UK,UKD7,Merseyside,23600
+UK,UKE1,East Yorkshire and Northern Lincolnshire,23600
+UK,UKE2,North Yorkshire,27200
+UK,UKE3,South Yorkshire,21500
+UK,UKE4,West Yorkshire,26200
+UK,UKF1,Derbyshire and Nottinghamshire,24500
+UK,UKF2,"Leicestershire, Rutland and Northamptonshire",27500
+UK,UKF3,Lincolnshire,21700
+UK,UKG1,"Herefordshire, Worcestershire and Warwickshire",29200
+UK,UKG2,Shropshire and Staffordshire,23300
+UK,UKG3,West Midlands,26200
+UK,UKH1,East Anglia,27900
+UK,UKH2,Bedfordshire and Hertfordshire,32700
+UK,UKH3,Essex,25200
+UK,UKI3,Inner London - West,184000
+UK,UKI4,Inner London - East,50200
+UK,UKI5,Outer London - East and North East,22400
+UK,UKI6,Outer London - South,27800
+UK,UKI7,Outer London - West and North West,38800
+UK,UKJ1,"Berkshire, Buckinghamshire and Oxfordshire",43400
+UK,UKJ2,"Surrey, East and West Sussex",32900
+UK,UKJ3,Hampshire and Isle of Wight,31700
+UK,UKJ4,Kent,26000
+UK,UKK1,"Gloucestershire, Wiltshire and Bristol/Bath area",32500
+UK,UKK2,Dorset and Somerset,24500
+UK,UKK3,Cornwall and Isles of Scilly,20900
+UK,UKK4,Devon,23600
+UK,UKL1,West Wales and The Valleys,19900
+UK,UKL2,East Wales,28000
+UK,UKM5,North Eastern Scotland,41900
+UK,UKM6,Highlands and Islands,28300
+UK,UKM7,Eastern Scotland,31900
+UK,UKM8,West Central Scotland,26700
+UK,UKM9,Southern Scotland,19000
+UK,UKN0,Northern Ireland (UK),24800`;
+
+window.SEMINAR = {
+  id: "ps1",
+  eyebrow: "Week 1 · Problem Set 1",
+  title: "Sampling, Bias and Describing Data",
+  lead: "Work through the problem set in your browser. Written questions have a box for your answer; R questions have an editor that runs real R code, with nothing to install. Use the hints if you get stuck.",
+  note: "<b>How it works.</b> Do the steps in order: later R steps use objects you create in earlier ones. Press <b>Run</b>, or <b>Ctrl+Enter</b> (<b>Cmd+Enter</b> on a Mac). The first hint is always open; the next one unlocks 30 seconds after you open the one before. Your answers are saved in this browser only, so they are not submitted to anyone. Three datasets are already loaded: <code>cars_data</code>, <code>temps</code> and <code>gdp</code>.",
+  footer: "ECN7020 · Problem Set 1 · covers the Week 1 lecture, discussed in the Week 2 seminar",
+  readyText: "R is ready. The three datasets are loaded: click Run on any R step.",
+  packages: [],
+  setup: `
+    cars_data <- data.frame(cars = 1:5,
+                            South = c(20, 11, 14, 8, 6),
+                            North = c(40, 15, 15, 10, 7))
+    temps <- c(24, 35, 17, 21, 24, 37, 26, 46, 58, 30,
+               32, 13, 12, 38, 41, 43, 44, 27, 53, 27)
+    gdp <- read.csv(text = r"(${GDP_CSV})", stringsAsFactors = FALSE)
+  `,
+  items: [
+
+    // ------------------------------------------------------------------ Part A
+    { type: "section", eyebrow: "Part A · Questions 1 and 2", title: "Sampling and Bias",
+      text: "<p>No R needed here. Write a sentence or two for each part, then compare with the model answer.</p>" },
+
+    { type: "write", title: "Question 1: validity, reliability and bias",
+      desc: "What do the following terms mean? <ol type='a'><li>Validity</li><li>Reliability</li><li>Bias</li></ol>",
+      h1: "Think of the four targets from the lecture. Each shot is one measurement and the bullseye is the true value. Which word describes shots that land close together? Which describes shots centred on the bullseye?",
+      h2: "<ul><li>One of the three is about <b>consistency</b> when you measure again.</li><li>One is about whether you are measuring <b>the right thing</b>.</li><li>One is a <b>systematic</b> error, which does not average out however many measurements you take.</li></ul>",
+      h3: "<ul><li><b>Validity:</b> the measurement captures the concept it is supposed to measure.</li><li><b>Reliability:</b> repeated measurements give consistent results. Larger samples give more reliable estimates.</li><li><b>Bias:</b> a systematic gap between the measurement and the truth, in one direction. A biased measure can be very reliable and still wrong, and a bigger sample does not fix it.</li></ul>" },
+
+    { type: "write", title: "Question 2 (a)–(b): the newspaper's poll",
+      desc: "A small newspaper that vocally supports the blue party wants to predict who will win an election. It sends 100 emails to its subscribers, at random, asking who they will vote for. Of those who took part, 80% said they would vote for the blue party. The newspaper predicts that the blue party will comfortably win. <ol type='a'><li>What is the newspaper trying to predict?</li><li>Could their sample be described as a 'random sample'?</li></ol>",
+      h1: "Separate two groups: the people the newspaper wants to know about, and the people it actually asked.",
+      h2: "<ul><li>The <b>population</b> is everyone whose behaviour you want to predict.</li><li>In a simple random sample, every member <b>of that population</b> has the same chance of being chosen.</li><li>Notice the phrase 'of those who took part'.</li></ul>",
+      h3: "<ul><li><b>(a)</b> The share of the vote each party will get among everyone who votes in the election, and so who wins. The population is all voters.</li><li><b>(b)</b> Only in a narrow sense. It is a random sample <b>of the newspaper's subscribers</b>, not of voters: someone who does not subscribe has no chance of being asked. And only some of the 100 replied, so those who answered chose themselves.</li></ul>" },
+
+    { type: "write", title: "Question 2 (c)–(e): is the conclusion valid?",
+      desc: "<ol type='a' start='3'><li>Would you change anything about their sampling procedure? Why?</li><li>Are their estimates valid? Why (one sentence)?</li><li>(i) Is the conclusion that they reached based on their estimates valid? Why (one sentence)? (ii) What could they conclude from their results?</li></ol>",
+      h1: "An estimate can be a perfectly good measurement of one group and a bad measurement of another. Which group does '80% for blue' describe well?",
+      h2: "<ul><li>Subscribers to a pro-blue newspaper are likely to differ from voters in general in exactly the thing being measured.</li><li>Think about the <b>sampling frame</b>: the list you draw the sample from.</li><li>Recall the 1936 Literary Digest poll: a huge sample drawn from the wrong list.</li></ul>",
+      h3: "<ul><li><b>(c)</b> Yes. Draw the sample from a list that covers all voters, such as the electoral register, so that every voter can be chosen; chase people who do not reply; and use a larger sample.</li><li><b>(d)</b> They are a valid estimate of support for blue among the subscribers who replied, but not of support among voters.</li><li><b>(e)(i)</b> No: the sample comes from readers of a pro-blue paper, so it is biased towards blue and says little about the electorate (selection bias).</li><li><b>(e)(ii)</b> That about 80% of their subscribers who answered intend to vote blue.</li></ul>" },
+
+    { type: "write", title: "Question 2 (f): an open online survey",
+      desc: "The newspaper, aware of potential issues, changes its sampling procedure. Instead of emailing only its subscribers, it runs a second survey on the internet that anyone can answer (for example through online advertisements and platforms such as YouGov). Would this avoid systematic sampling bias? If not, how could they improve their sampling procedure?",
+      h1: "Who decides whether a person ends up in this sample: the researcher or the person?",
+      h2: "<ul><li>A survey that 'anyone can answer' is an <b>opt-in</b> survey.</li><li>People who choose to answer a political survey tend to have stronger views, and people who see the advert are not all voters.</li><li>Think about what polling companies do so that their panel looks like the population.</li></ul>",
+      h3: "<p>No. It removes the 'subscribers only' problem but adds <b>self-selection</b>: respondents choose themselves, so the sample over-represents people who are online, who see the advert and who care strongly about politics. It is still not a random sample of voters.</p><p>Improvements: select respondents at random from a list covering all voters; or, as polling companies do, recruit a large panel and then pick and <b>weight</b> respondents so that the sample matches the electorate on age, sex, region, education and past vote (quota or stratified sampling). Follow up non-respondents and report the response rate.</p>" },
+
+    // ------------------------------------------------------------------ Question 3
+    { type: "section", eyebrow: "Part B · Question 3", title: "How Many Cars per Household?",
+      text: "<p>A statistician asked a random sample of households how many cars they own. The responses are in the data frame <code>cars_data</code>.</p>" +
+            "<table class='data'><tr><th>Number of cars</th><th>South</th><th>North</th></tr>" +
+            "<tr><td>1</td><td>20</td><td>40</td></tr><tr><td>2</td><td>11</td><td>15</td></tr><tr><td>3</td><td>14</td><td>15</td></tr>" +
+            "<tr><td>4</td><td>8</td><td>10</td></tr><tr><td>5</td><td>6</td><td>7</td></tr></table>" },
+
+    { type: "r", title: "Look at the data and add an 'All' column",
+      desc: "Print <code>cars_data</code>. Then add a column called <code>All</code> with the number of households in both regions together, and print the data frame again.",
+      h1: "Each row is a number of cars, and each column is a region. The total for a row is South plus North.",
+      h2: "Refer to a column with <code>$</code>, for example <code>cars_data$South</code>. Create a new column by assigning to a new name: <code>cars_data$All &lt;- ...</code>.",
+      h3: "cars_data\ncars_data$All <- cars_data$South + cars_data$North\ncars_data",
+      code: "# Print the data, then add the All column\n" },
+
+    { type: "r", title: "(a) Sample size of each group",
+      desc: "Work out the sample size: the number of households asked in the South, in the North, and in total.",
+      h1: "The sample size of a group is the sum of its column.",
+      h2: "Use <code>sum()</code> on one column, or <code>colSums()</code> on several columns at once: <code>cars_data[, c(\"All\", \"South\", \"North\")]</code> selects three columns.",
+      h3: "n <- colSums(cars_data[, c(\"All\", \"South\", \"North\")])\nn",
+      h3note: "The sample has 146 households: 59 in the South and 87 in the North. The groups are different sizes, which matters in part (c).",
+      code: "# Sample sizes\n" },
+
+    { type: "r", title: "(b) Percentage of each sample",
+      desc: "For each region and for all households, calculate the percentage of the sample with each number of cars. Check that each column of percentages adds up to 100.",
+      h1: "Percentage = (number in a group ÷ total sample size) × 100, and each region is divided by <b>its own</b> total.",
+      h2: "Divide a column by its <code>sum()</code> and multiply by 100. <code>round(x, 1)</code> keeps one decimal place. Store the three results as new columns, then check with <code>colSums()</code>.",
+      h3: "cars_data$pct_All   <- round(cars_data$All   / sum(cars_data$All)   * 100, 1)\ncars_data$pct_South <- round(cars_data$South / sum(cars_data$South) * 100, 1)\ncars_data$pct_North <- round(cars_data$North / sum(cars_data$North) * 100, 1)\ncars_data\ncolSums(cars_data[, c(\"pct_All\", \"pct_South\", \"pct_North\")])",
+      h3note: "For example, 33.9% of Southern households and 46.0% of Northern households have one car. The columns add up to 100, apart from small rounding differences.",
+      code: "# Percentages of each sample\n" },
+
+    { type: "r", title: "(c) Three or more cars: North or South?",
+      desc: "In which region are you more likely to find a household with 3 or more cars? Calculate the share of households with 3 or more cars in each region.",
+      h1: "Compare shares, not counts: the two regions have different sample sizes. '3 or more' means adding the rows for 3, 4 and 5 cars.",
+      h2: "Pick rows with a condition inside square brackets: <code>cars_data$South[cars_data$cars &gt;= 3]</code>. Sum them and divide by the region's total.",
+      h3: "south <- sum(cars_data$South[cars_data$cars >= 3]) / sum(cars_data$South) * 100\nnorth <- sum(cars_data$North[cars_data$cars >= 3]) / sum(cars_data$North) * 100\nround(c(South = south, North = north), 1)",
+      h3note: "The South: 47.5% of Southern households have 3 or more cars, against 36.8% in the North. By count the North has more such households (32 against 28), but only because more Northern households were sampled. When groups differ in size, compare percentages.",
+      code: "# Share of households with 3 or more cars\n" },
+
+    // ------------------------------------------------------------------ Question 4
+    { type: "section", eyebrow: "Part B · Question 4", title: "Winter Temperatures",
+      text: "<p>A manufacturer of insulation randomly selects 20 winter days and records the daily high temperature. The observations are in the vector <code>temps</code>.</p>" +
+            "<div class='datalist'>24, 35, 17, 21, 24, 37, 26, 46, 58, 30, 32, 13, 12, 38, 41, 43, 44, 27, 53, 27</div>" },
+
+    { type: "r", title: "(a) Mean daily high temperature",
+      desc: "What is the mean daily high temperature? Also check how many observations there are.",
+      h1: "The mean is the sum of the values divided by how many there are.",
+      h2: "<code>length()</code> counts the observations and <code>mean()</code> gives the mean. You can check it by hand with <code>sum(temps) / length(temps)</code>.",
+      h3: "length(temps)\nmean(temps)\nsum(temps) / length(temps)",
+      h3note: "There are 20 observations and the mean is 32.4.",
+      code: "# Mean temperature\n" },
+
+    { type: "r", title: "(b) Median and mode",
+      desc: "What are the median and the mode of the sample?",
+      h1: "The median is the middle value once the data are sorted; with 20 values it is the average of the 10th and 11th. The mode is the value that appears most often, and there can be more than one.",
+      h2: "<code>sort()</code> and <code>median()</code> for the median. R has no function for the statistical mode, so count the values with <code>table()</code> and look for the largest count.",
+      h3: "sort(temps)\nmedian(temps)\ncounts <- table(temps)\ncounts[counts == max(counts)]",
+      h3note: "The median is 31, the average of 30 and 32. There are two modes, 24 and 27, each appearing twice. The mean (32.4) is a little above the median, pulled up by the few warm days.",
+      code: "# Median and mode\n" },
+
+    { type: "r", title: "(c) Variance and standard deviation",
+      desc: "What are the variance and the standard deviation of the sample, and what do they tell you?",
+      h1: "Both measure how spread out the temperatures are around the mean. This is a sample, so the sum of squared deviations is divided by n − 1.",
+      h2: "<code>var()</code> and <code>sd()</code> use n − 1. Check by hand: <code>sum((temps - mean(temps))^2) / (length(temps) - 1)</code>, then <code>sqrt()</code>.",
+      h3: "var(temps)\nsd(temps)\nsum((temps - mean(temps))^2) / (length(temps) - 1)",
+      h3note: "The variance is 160.6 (in squared degrees) and the standard deviation is 12.7 degrees. A typical day is about 13 degrees away from the mean of 32.4, so winter highs vary a lot: the insulation has to cope with a wide range, not just the average day.",
+      code: "# Variance and standard deviation\n" },
+
+    { type: "r", title: "(d) Group into 5 classes of equal width",
+      desc: "Group the observations into 5 classes of equal width, and assign each observation to its class.",
+      h1: "Find the lowest and highest values first. Five classes that cover them, with round boundaries, are easiest to read.",
+      h2: "<code>range()</code> gives the minimum and maximum. <code>seq(10, 60, by = 10)</code> makes the class boundaries. <code>cut(x, breaks = ..., right = FALSE)</code> assigns each value to a class that includes its lower boundary.",
+      h3: "range(temps)\nbreaks <- seq(10, 60, by = 10)\nclasses <- cut(temps, breaks = breaks, right = FALSE)\nclasses",
+      h3note: "The values run from 12 to 58, so the classes 10–20, 20–30, 30–40, 40–50 and 50–60 cover them. [10,20) means 10 is included and 20 is not.",
+      code: "# Class boundaries and classes\n" },
+
+    { type: "r", title: "(e) Frequency, relative and cumulative frequency",
+      desc: "What are the frequency, relative frequency and cumulative frequency of each class? Put them in one table.",
+      h1: "Frequency is the count in each class. Relative frequency is the count divided by the total. Cumulative frequency is the running total.",
+      h2: "<code>table(classes)</code> counts. Divide by <code>sum()</code> for relative frequency, and use <code>cumsum()</code> for the running total. <code>data.frame()</code> puts them side by side.",
+      h3: "freq <- table(classes)\nfreq_table <- data.frame(class = names(freq),\n                         frequency = as.vector(freq),\n                         relative = as.vector(freq) / sum(freq),\n                         cumulative = cumsum(as.vector(freq)))\nfreq_table",
+      h3note: "Frequencies 3, 6, 5, 4, 2; relative frequencies 0.15, 0.30, 0.25, 0.20, 0.10; cumulative frequencies 3, 9, 14, 18, 20. The last cumulative frequency always equals the sample size.",
+      code: "# Frequency table\n" },
+
+    { type: "r", title: "(f) Three histograms", plot: { width: 900, height: 380 },
+      desc: "Draw three histograms: for the absolute, relative and cumulative frequencies.",
+      h1: "All three have the same classes on the horizontal axis. Only the height of the bars changes: counts, shares, or running totals.",
+      h2: "<code>hist(temps, breaks = breaks, right = FALSE)</code> draws the first. For the other two, plot the columns of <code>freq_table</code> from step (e) with <code>barplot(..., space = 0)</code>, which leaves no gaps between the bars. <code>par(mfrow = c(1, 3))</code> puts three plots in a row.",
+      h3: "par(mfrow = c(1, 3))\nhist(temps, breaks = breaks, right = FALSE, col = \"#2A5A88\",\n     main = \"Frequency\", xlab = \"Daily high temperature\")\n\nbarplot(freq_table$relative, names.arg = freq_table$class, space = 0,\n        col = \"#E36533\", main = \"Relative frequency\",\n        xlab = \"Daily high temperature\", ylab = \"Relative frequency\")\n\nbarplot(freq_table$cumulative, names.arg = freq_table$class, space = 0,\n        col = \"#3C6E2F\", main = \"Cumulative frequency\",\n        xlab = \"Daily high temperature\", ylab = \"Cumulative frequency\")\npar(mfrow = c(1, 1))",
+      h3note: "The first two have the same shape, with the 20–30 class the tallest; only the scale differs. The cumulative histogram always rises and ends at 20.",
+      code: "# Three histograms\n" },
+
+    // ------------------------------------------------------------------ Question 5
+    { type: "section", eyebrow: "Part B · Question 5", title: "Regional Income and Sigma Convergence",
+      text: "<p>The data frame <code>gdp</code> has regional GDP per capita in purchasing power standards (PPS) for NUTS 2 regions of the UK, Germany and France in 2016 (source: Eurostat). Economists who study the convergence of regions use the <b>coefficient of variation</b> of regional GDP per capita to measure how dispersed regional incomes are and, over time, whether they are converging. This is called <i>sigma convergence</i>.</p>" },
+
+    { type: "r", title: "(a) Import and inspect the data",
+      desc: "Here the data are already loaded as <code>gdp</code>. In RStudio you would import the file with <code>gdp &lt;- read.csv(\"ECN7020_PS1_Regional_GDP_2016.csv\")</code>. Look at the first rows, the structure, and how many regions each country has.",
+      h1: "Before any calculation, check what each column holds and how many rows there are for each country.",
+      h2: "<code>head()</code> shows the first rows, <code>str()</code> the structure, and <code>table()</code> counts the values of a column, for example <code>table(gdp$Country)</code>.",
+      h3: "head(gdp)\nstr(gdp)\ntable(gdp$Country)",
+      h3note: "There are 106 regions: 27 in France, 38 in Germany and 41 in the UK. Each row is one region.",
+      code: "# In RStudio: gdp <- read.csv(\"ECN7020_PS1_Regional_GDP_2016.csv\")\n# Inspect the data\n" },
+
+    { type: "r", title: "(b) Coefficient of variation for each country",
+      desc: "Calculate the coefficient of variation of regional GDP per capita for each country.",
+      h1: "CV = standard deviation ÷ mean. You need both for each country separately.",
+      h2: "<code>tapply(values, groups, function)</code> applies a function to each group: <code>tapply(gdp$GDP_per_capita_PPS, gdp$Country, mean)</code>. Do the same with <code>sd</code> and divide.",
+      h3: "m <- tapply(gdp$GDP_per_capita_PPS, gdp$Country, mean)\ns <- tapply(gdp$GDP_per_capita_PPS, gdp$Country, sd)\ncv <- s / m\nround(cv, 3)",
+      h3note: "France 0.270, Germany 0.219, UK 0.795.",
+      code: "# Coefficient of variation by country\n" },
+
+    { type: "write", title: "(c) Compare and interpret the coefficients of variation",
+      desc: "Compare the three coefficients of variation you obtained in (b). What do they suggest about regional inequality in each country? Is anything surprising?",
+      h1: "The CV is the standard deviation as a share of the mean, so it can be compared across countries with different income levels. A higher CV means regional incomes are more spread out.",
+      h2: "<ul><li>Rank the three countries.</li><li>One value is more than three times the others. Before trusting it, ask what could produce a number like that.</li><li>The standard deviation squares the distance from the mean, so a single extreme region counts heavily.</li></ul>",
+      h3: "<p>Taken at face value, regional incomes are most equal in Germany (0.219), somewhat more dispersed in France (0.270) and far more dispersed in the UK (0.795), where the standard deviation is about 80% of the mean.</p><p>The UK figure is suspiciously large. A CV that far from the others should make you look at the data before drawing a conclusion: it may reflect one or two extreme regions and not the typical gap between regions. Parts (d) to (f) check this.</p>" },
+
+    { type: "r", title: "(d) Lowest, highest and their ratio",
+      desc: "Find the lowest and highest regional GDP per capita for each country, and express them as a ratio of the highest to the lowest.",
+      h1: "The ratio answers: how many times richer is the richest region than the poorest?",
+      h2: "Use <code>tapply()</code> again with <code>min</code> and <code>max</code>, then divide. <code>rbind()</code> stacks results into one table.",
+      h3: "lo <- tapply(gdp$GDP_per_capita_PPS, gdp$Country, min)\nhi <- tapply(gdp$GDP_per_capita_PPS, gdp$Country, max)\nrbind(lowest = lo, highest = hi)\nround(hi / lo, 2)",
+      h3note: "France 9,500 to 51,700 (ratio 5.44); Germany 24,200 to 58,600 (2.42); UK 19,000 to 184,000 (9.68).",
+      code: "# Lowest, highest and ratio by country\n" },
+
+    { type: "r", title: "(e) Median regional GDP per capita",
+      desc: "Find the median regional GDP per capita for each country, and compare it with the mean.",
+      h1: "The median is not affected by a few extreme regions, so a large gap between mean and median is a warning sign.",
+      h2: "<code>tapply(..., median)</code>. Print it next to the means from step (b) with <code>rbind(mean = m, median = med)</code>.",
+      h3: "med <- tapply(gdp$GDP_per_capita_PPS, gdp$Country, median)\nround(rbind(mean = m, median = med))",
+      h3note: "Medians: France 24,700, Germany 34,400, UK 26,700. In France and Germany the mean and median are close. In the UK the mean (about 31,800) is well above the median, which again points to extreme values at the top.",
+      code: "# Median by country\n" },
+
+    { type: "r", title: "(f)(i) Identify the outliers", plot: { width: 680, height: 440 },
+      desc: "There are some outliers in the data. Identify them: draw a box plot by country, then list the regions with the highest and lowest values.",
+      h1: "A box plot marks as outliers the points more than 1.5 interquartile ranges beyond the box. Then find out which regions those points are.",
+      h2: "<code>boxplot(GDP_per_capita_PPS ~ Country, data = gdp)</code> draws one box per country. <code>order()</code> sorts a data frame: <code>gdp[order(gdp$GDP_per_capita_PPS), ]</code>; <code>head()</code> and <code>tail()</code> show the ends.",
+      h3: "boxplot(GDP_per_capita_PPS ~ Country, data = gdp, col = \"#E1EBF5\",\n        main = \"Regional GDP per capita, 2016\", ylab = \"PPS\")\nsorted <- gdp[order(gdp$GDP_per_capita_PPS), ]\nhead(sorted, 5)\ntail(sorted, 5)",
+      h3note: "Two regions stand far apart: <b>Inner London - West</b> (184,000, more than three times any other region) and <b>Mayotte</b> (9,500, a French overseas department). The box plot also flags milder cases such as Hamburg, Île de France, Inner London - East and Guyane. Which ones to treat as outliers is a judgement; the next step removes the two extreme ones.",
+      code: "# Box plot and the extreme regions\n" },
+
+    { type: "r", title: "(f)(ii) Remove the outliers and recalculate",
+      desc: "Remove Inner London - West and Mayotte. What happens to the coefficient of variation, and to the ratio of the highest to the lowest regional income?",
+      h1: "Make a new data frame without the two regions, then repeat steps (b) and (d) on it. Keep the original <code>gdp</code> so you can compare.",
+      h2: "<code>subset(gdp, !(Region %in% c(\"...\", \"...\")))</code> keeps the rows whose region is not in the list. Region names must be typed exactly as they appear in the data.",
+      h3: "gdp2 <- subset(gdp, !(Region %in% c(\"Inner London - West\", \"Mayotte\")))\n\ncv2 <- tapply(gdp2$GDP_per_capita_PPS, gdp2$Country, sd) /\n       tapply(gdp2$GDP_per_capita_PPS, gdp2$Country, mean)\nratio2 <- tapply(gdp2$GDP_per_capita_PPS, gdp2$Country, max) /\n          tapply(gdp2$GDP_per_capita_PPS, gdp2$Country, min)\n\nround(rbind(cv_before = cv, cv_after = cv2,\n            ratio_before = hi / lo, ratio_after = ratio2), 3)",
+      h3note: "UK: CV falls from 0.795 to 0.239 and the ratio from 9.68 to 2.64. France: CV from 0.270 to 0.239 and the ratio from 5.44 to 3.29. Germany is unchanged, because neither region is German.",
+      code: "# Remove the two outliers and recalculate\n" },
+
+    { type: "write", title: "(f)(iii) Interpret your new results",
+      desc: "Interpret the results after removing the outliers. What do they tell you about regional inequality in the three countries, and about the coefficient of variation as a measure?",
+      h1: "Compare the 'before' and 'after' rows. Which country's story changed, and how much of it rested on a single region?",
+      h2: "<ul><li>Why might Inner London - West have such a high GDP <b>per resident</b>? Think about where people work and where they live.</li><li>Which of the measures you used changed least when the outliers were removed?</li><li>Is removing an outlier always the right thing to do?</li></ul>",
+      h3: "<p>Without the two extreme regions the three countries look alike: CVs of about 0.22 to 0.24 and richest-to-poorest ratios of about 2.4 to 3.3. The UK's apparently huge regional dispersion came almost entirely from one region.</p><p>Inner London - West is partly a measurement issue: GDP is produced by the many people who commute in to work there, but it is divided by the small number who live there, so GDP per resident is inflated. This is the Week 1 question 'what does it actually measure?'</p><p>The lesson for the method: the CV and the highest-to-lowest ratio are very sensitive to outliers, because one depends on squared deviations and the other on just two regions. The median barely moves. So look at the data, report results with and without outliers, and say which you removed and why. Removing them is not automatically right: London's concentration of activity and the low incomes in French overseas departments are real features of those economies.</p>" },
+  ],
+};
+</script>
+<script type="module" src="../assets/seminar.js"></script>
+</body>
+</html>
