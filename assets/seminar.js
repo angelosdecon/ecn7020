@@ -5,14 +5,17 @@
 const S = window.SEMINAR;
 const WEBR_URL = S.webrUrl || "https://webr.r-wasm.org/latest/webr.mjs";
 const KEY = "ecn7020-" + S.id + "-";
-const HINT_DELAY = S.hintDelay === undefined ? 30 : S.hintDelay; // seconds before the next hint unlocks
+// Seconds before a hint unlocks, counted from when the previous one is opened: [second hint, third hint].
+const HINT_DELAYS = S.hintDelays || [10, 10];
+const delayFor = (lvl) => HINT_DELAYS[lvl - 2] || 0;
 
 let webR = null;
 let rReady = false;
 const done = new Set();
 const editors = {};
 const timers = {};
-const steps = S.items.filter((it) => it.type !== "section");
+const steps = S.items.filter((it) => it.type !== "section" && it.type !== "text");
+const SHOW_PROGRESS = S.progress !== false;
 steps.forEach((s, i) => { s.n = i + 1; });
 
 // Saved answers live only in this browser. Everything still works if storage is unavailable.
@@ -48,18 +51,24 @@ function buildPage() {
     '<p class="lead">' + S.lead + "</p>" +
     '<div class="status" id="status" role="status"><span class="dot"></span><span id="status-text">Starting R… this can take a minute or two the first time.</span></div>');
   wrap.appendChild(hero);
-  wrap.appendChild(el("div", "progress",
-    '<div class="row"><span id="progress-text"></span><button class="linkbtn" id="reset">Clear my answers</button></div>' +
-    '<div class="bar"><div class="fill" id="progress-fill"></div></div>'));
+  if (SHOW_PROGRESS) {
+    wrap.appendChild(el("div", "progress",
+      '<div class="row"><span id="progress-text"></span><button class="linkbtn" id="reset">Clear my answers</button></div>' +
+      '<div class="bar"><div class="fill" id="progress-fill"></div></div>'));
+  }
   if (S.note) wrap.appendChild(el("div", "note", S.note));
   const main = el("main");
   wrap.appendChild(main);
-  S.items.forEach((it) => main.appendChild(it.type === "section" ? buildSection(it) : buildStep(it)));
+  S.items.forEach((it) => {
+    if (it.type === "section") main.appendChild(buildSection(it));
+    else if (it.type === "text") main.appendChild(buildText(it));
+    else main.appendChild(buildStep(it));
+  });
   wrap.appendChild(el("footer", "",
     "<span>" + esc(S.footer || S.title) + "</span>" +
-    '<span><a href="' + (S.home || "../") + '">All problem sets</a></span>'));
+    '<span><a href="' + (S.home || "../") + '">All problem sets</a> · <a href="' + (S.guide || "../r-guide/") + '">R guide</a></span>'));
   document.body.appendChild(wrap);
-  document.getElementById("reset").addEventListener("click", () => {
+  if (SHOW_PROGRESS) document.getElementById("reset").addEventListener("click", () => {
     if (window.confirm("Clear all your saved answers and code for this problem set?")) {
       store.clear();
       window.location.reload();
@@ -76,21 +85,31 @@ function buildSection(it) {
   return sec;
 }
 
+// A plain reading card: { type: "text", title, html }
+function buildText(it) {
+  const card = el("article", "step text");
+  card.innerHTML = '<div class="step-head"><div class="step-title">' + it.title + "</div></div>" +
+    '<div class="step-body prose">' + it.html + "</div>";
+  return card;
+}
+
 function buildStep(s) {
   const isR = s.type === "r";
+  const hasHints = s.hints !== false; // { type: "r", hints: false } is a runnable example with no hints
   const card = el("article", "step");
   card.id = "step-" + s.n;
   const labels = isR ? ["Hint", "Functions", "Solution"] : ["Hint", "Pointers", "Model answer"];
-  const lock = (lvl) => (HINT_DELAY > 0 ? ' <span class="timer" id="t' + lvl + "-" + s.n + '">' + HINT_DELAY + "s</span>" : "");
-  const dis = HINT_DELAY > 0 ? " disabled" : "";
+  const lock = (lvl) => (delayFor(lvl) > 0 ? ' <span class="timer" id="t' + lvl + "-" + s.n + '">' + delayFor(lvl) + "s</span>" : "");
+  const dis = (lvl) => (delayFor(lvl) > 0 ? " disabled" : "");
   let html =
     '<div class="step-head"><div class="step-num">' + s.n + '</div><div class="step-title">' + s.title + "</div>" +
-    '<div class="step-tag">' + (isR ? "R code" : "Written") + "</div></div>" +
-    '<div class="step-body"><div class="step-desc">' + s.desc + "</div>" +
+    '<div class="step-tag">' + (!hasHints ? "Try it" : isR ? "R code" : "Written") + "</div></div>" +
+    '<div class="step-body"><div class="step-desc">' + s.desc + "</div>";
+  if (hasHints) html +=
     '<div class="hints">' +
     '<button class="hint-btn" id="hb1-' + s.n + '">' + labels[0] + "</button>" +
-    '<button class="hint-btn" id="hb2-' + s.n + '"' + dis + ">" + labels[1] + lock(2) + "</button>" +
-    '<button class="hint-btn" id="hb3-' + s.n + '"' + dis + ">" + labels[2] + lock(3) + "</button></div>" +
+    '<button class="hint-btn" id="hb2-' + s.n + '"' + dis(2) + ">" + labels[1] + lock(2) + "</button>" +
+    '<button class="hint-btn" id="hb3-' + s.n + '"' + dis(3) + ">" + labels[2] + lock(3) + "</button></div>" +
     '<div class="hint h1" id="hc1-' + s.n + '"><span class="label">' + labels[0] + "</span>" + s.h1 + "</div>" +
     '<div class="hint h2" id="hc2-' + s.n + '"><span class="label">' + labels[1] + "</span>" + s.h2 + "</div>" +
     '<div class="hint h3" id="hc3-' + s.n + '"><span class="label">' + labels[2] + "</span>" +
@@ -111,7 +130,7 @@ function buildStep(s) {
 
   // Wire up after the card is in the document
   queueMicrotask(() => {
-    [1, 2, 3].forEach((lvl) =>
+    if (hasHints) [1, 2, 3].forEach((lvl) =>
       document.getElementById("hb" + lvl + "-" + s.n).addEventListener("click", () => showHint(s.n, lvl)));
     if (isR) {
       const ta = document.getElementById("ta-" + s.n);
@@ -153,7 +172,7 @@ function showHint(n, lvl) {
     document.getElementById("hc" + i + "-" + n).classList.toggle("show", i === lvl);
     document.getElementById("hb" + i + "-" + n).classList.toggle("active", i === lvl);
   });
-  if (lvl < 3 && HINT_DELAY > 0) startTimer(n, lvl + 1);
+  if (lvl < 3 && delayFor(lvl + 1) > 0) startTimer(n, lvl + 1);
 }
 
 function startTimer(n, lvl) {
@@ -161,7 +180,7 @@ function startTimer(n, lvl) {
   if (timers[key]) return;
   const badge = document.getElementById("t" + lvl + "-" + n);
   const btn = document.getElementById("hb" + lvl + "-" + n);
-  let left = HINT_DELAY;
+  let left = delayFor(lvl);
   timers[key] = setInterval(() => {
     left -= 1;
     if (badge) badge.textContent = left + "s";
@@ -180,6 +199,7 @@ function markDone(n, isDone) {
 }
 
 function updateProgress() {
+  if (!SHOW_PROGRESS) return;
   document.getElementById("progress-fill").style.width = (done.size / steps.length) * 100 + "%";
   document.getElementById("progress-text").textContent = done.size + " of " + steps.length + " steps completed";
 }

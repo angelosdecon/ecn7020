@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Using R: a short guide — ECN7020, SOAS Economics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="../assets/seminar.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
+</head>
+<body>
+<noscript>This page needs JavaScript to run R in your browser.</noscript>
+
+<script>
+// A short guide to R for ECN7020 students. Same engine as the problem sets:
+// "text" cards are for reading, and "r" cards with hints: false are examples to run and change.
+window.SEMINAR = {
+  id: "r-guide",
+  progress: false,
+  eyebrow: "ECN7020 · Getting started",
+  title: "Using R: A Short Guide",
+  lead: "The handful of things you need to use R in this module. Every example runs in this page: press Run, then change the code and run it again.",
+  note: "<b>R is a tool here, not the subject.</b> It is not formally assessed in ECN7020, but it helps with the essay and later modules. You can use this site without installing anything; to work on your own computer, install R and RStudio (section 1).",
+  footer: "ECN7020 · Using R: a short guide",
+  readyText: "R is ready. Press Run on any example.",
+  packages: [],
+  setup: `
+    temps <- c(24, 35, 17, 21, 24, 37, 26, 46, 58, 30,
+               32, 13, 12, 38, 41, 43, 44, 27, 53, 27)
+    regions <- data.frame(
+      country = c("UK", "UK", "UK", "Germany", "Germany", "France", "France"),
+      region  = c("Greater Manchester", "Kent", "East Wales", "Berlin", "Hamburg", "Bretagne", "Alsace"),
+      gdp     = c(27300, 26000, 28000, 35600, 58600, 25800, 28100))
+  `,
+  items: [
+
+    { type: "section", eyebrow: "Part 1", title: "The Basics" },
+
+    { type: "text", title: "1. R and RStudio",
+      html: "<p><b>R</b> is the language that does the calculations. <b>RStudio</b> is the program you work in. Install R first, then RStudio; both are free.</p>" +
+            "<ul><li>R: <a href='https://cran.r-project.org/'>cran.r-project.org</a> (Windows: <i>Download R for Windows</i>, then <i>base</i>. Mac: <i>Download R for macOS</i>, then the installer for your chip).</li>" +
+            "<li>RStudio Desktop: <a href='https://posit.co/download/rstudio-desktop/'>posit.co/download/rstudio-desktop</a></li></ul>" +
+            "<p>RStudio has four panes:</p>" +
+            "<div class='tablewrap'><table><tr><th>Pane</th><th>What it is for</th></tr>" +
+            "<tr><td>Source (top left)</td><td>Your script: the code you write and save. Open one with File › New File › R Script.</td></tr>" +
+            "<tr><td>Console (bottom left)</td><td>Where code runs and results appear.</td></tr>" +
+            "<tr><td>Environment (top right)</td><td>The objects you have created: data, results.</td></tr>" +
+            "<tr><td>Files, Plots, Help (bottom right)</td><td>Your folder, your graphs and the help pages.</td></tr></table></div>" +
+            "<p>On this site, the dark editor plays the part of the script and the grey box under it plays the part of the console.</p>" },
+
+    { type: "r", hints: false, title: "2. R as a calculator",
+      desc: "R works out each line and prints the answer. Anything after <code>#</code> is a comment: R ignores it, and it is there for you.",
+      code: "2 + 3 * 4      # multiplication first, as usual\n(2 + 3) * 4\n7 / 2\n2^10           # 2 to the power 10\nsqrt(16)       # square root\n" },
+
+    { type: "r", hints: false, title: "3. Store a result with <-",
+      desc: "Give a result a name with <code>&lt;-</code> (say 'gets'). Nothing is printed when you store something: type the name on its own line to see it. Names are case-sensitive, so <code>price</code> and <code>Price</code> are different objects.",
+      code: "price <- 80\nquantity <- 12\nrevenue <- price * quantity\nrevenue\n\ngrowth <- (110 - 100) / 100 * 100   # percentage change\ngrowth\n" },
+
+    { type: "r", hints: false, title: "4. Vectors: a column of numbers",
+      desc: "<code>c()</code> combines values into a vector. Most functions take a whole vector at once. Square brackets pick out elements, by position or by a condition. The vector <code>temps</code> (20 winter temperatures) is already loaded.",
+      code: "wages <- c(420, 510, 380, 460, 950)\nlength(wages)        # how many values\nmean(wages)\nmedian(wages)\nwages[1]             # the first value\nwages[wages > 450]   # only the values above 450\nwages * 52           # the same operation on every value\n\ntemps\n" },
+
+    { type: "r", hints: false, title: "5. Functions and their arguments",
+      desc: "A function has a name and takes arguments in brackets, separated by commas. Arguments can be named, which makes code easier to read. In RStudio, <code>?mean</code> opens the help page for a function; here, <code>args()</code> shows what a function accepts.",
+      code: "round(3.14159)              # one argument\nround(3.14159, digits = 2)  # a second, named argument\nargs(round)\n\nseq(from = 10, to = 60, by = 10)\nsum(c(1, 2, 3, NA))                # NA means a missing value\nsum(c(1, 2, 3, NA), na.rm = TRUE)  # ignore missing values\n" },
+
+    { type: "section", eyebrow: "Part 2", title: "Working with Data" },
+
+    { type: "r", hints: false, title: "6. Data frames: a table of data",
+      desc: "A data frame is a table: each row is an observation and each column is a variable. The data frame <code>regions</code> is already loaded. <code>$</code> picks a column; square brackets with a comma pick <code>[rows, columns]</code>.",
+      code: "regions\nstr(regions)              # what each column holds\nnrow(regions)\nregions$gdp               # one column, as a vector\nmean(regions$gdp)\nregions[regions$gdp > 28000, ]         # rows that meet a condition\nregions[regions$country == \"UK\", ]     # == tests whether two things are equal\n" },
+
+    { type: "text", title: "7. Getting your own data into RStudio",
+      html: "<p>On this site the data are loaded for you. On your own computer:</p>" +
+            "<ol><li>Make one folder for each problem set and put the data file and your script in it.</li>" +
+            "<li>Open your script in RStudio, then choose <b>Session › Set Working Directory › To Source File Location</b>. R now looks for files in that folder.</li>" +
+            "<li>Read the file and check it:</li></ol>" +
+            "<pre>gdp &lt;- read.csv(\"ECN7020_PS1_Regional_GDP_2016.csv\")\nhead(gdp)    # first six rows\nstr(gdp)     # column names and types\nsummary(gdp) # a quick summary of every column</pre>" +
+            "<p>For an Excel file, install the <code>readxl</code> package once and then use it:</p>" +
+            "<pre>install.packages(\"readxl\")   # once only\nlibrary(readxl)              # at the top of every script that uses it\ncars &lt;- read_excel(\"ECN7020_PS1_Data.xlsx\", sheet = \"Q3 Cars\", skip = 2)</pre>" +
+            "<p>Always look at the data with <code>head()</code> and <code>str()</code> before calculating anything.</p>" },
+
+    { type: "r", hints: false, title: "8. Summaries, overall and by group",
+      desc: "<code>summary()</code> gives the main statistics in one go. <code>table()</code> counts categories. <code>tapply(values, groups, function)</code> applies a function to each group separately.",
+      code: "summary(temps)\nvar(temps)\nsd(temps)\n\ntable(regions$country)\ntapply(regions$gdp, regions$country, mean)\ntapply(regions$gdp, regions$country, max)\n" },
+
+    { type: "r", hints: false, title: "9. Graphs", plot: { width: 900, height: 380 },
+      desc: "Every graph needs a title and axis labels: <code>main</code>, <code>xlab</code> and <code>ylab</code>. <code>col</code> sets the colour. In RStudio, graphs appear in the Plots pane, where Export saves them for your essay.",
+      code: "par(mfrow = c(1, 3))    # three graphs side by side\n\nhist(temps, col = \"#2A5A88\",\n     main = \"Winter temperatures\", xlab = \"Daily high\")\n\nboxplot(gdp ~ country, data = regions, col = \"#E1EBF5\",\n        main = \"Regional GDP per person\", ylab = \"PPS\")\n\nplot(1:20, temps, type = \"b\", col = \"#E36533\",\n     main = \"Day by day\", xlab = \"Day\", ylab = \"Daily high\")\n\npar(mfrow = c(1, 1))\n" },
+
+    { type: "section", eyebrow: "Part 3", title: "When Things Go Wrong" },
+
+    { type: "r", hints: false, title: "10. Read the error message",
+      desc: "Errors are normal: everyone gets them all the time. The message usually tells you what is wrong. This code has three mistakes. Run it, read the message, fix the mistake it points to, and run it again until it works.",
+      code: "Mean(temps)\nmean(temp)\nround(mean(temps) digits = 1)\n" },
+
+    { type: "text", title: "11. Common error messages and what they mean",
+      html: "<div class='tablewrap'><table><tr><th>Message</th><th>Usual cause and fix</th></tr>" +
+            "<tr><td><code>object 'x' not found</code></td><td>The name is misspelt or has the wrong capital letters, or you have not yet run the line that creates it. Run your script from the top.</td></tr>" +
+            "<tr><td><code>could not find function</code></td><td>The function name is misspelt (R is case-sensitive: <code>mean</code>, not <code>Mean</code>), or it belongs to a package you have not loaded with <code>library()</code>.</td></tr>" +
+            "<tr><td><code>unexpected symbol</code>, <code>unexpected ')'</code></td><td>A comma, bracket or quotation mark is missing or extra. Check the line named in the message and the one before it.</td></tr>" +
+            "<tr><td>A <code>+</code> in the Console instead of <code>&gt;</code></td><td>R is waiting for you to finish a line, usually a missing closing bracket or quote. Press Esc and run the line again.</td></tr>" +
+            "<tr><td><code>non-numeric argument</code></td><td>You are doing arithmetic on text. Check the column with <code>str()</code>: a number column read as text often contains a stray character.</td></tr>" +
+            "<tr><td>The answer is <code>NA</code></td><td>The data contain missing values. Add <code>na.rm = TRUE</code>, for example <code>mean(x, na.rm = TRUE)</code>.</td></tr>" +
+            "<tr><td><code>cannot open file</code></td><td>R is looking in the wrong folder or the file name is not exact. Set the working directory (section 7) and check the spelling, including <code>.csv</code>.</td></tr>" +
+            "<tr><td><code>there is no package called</code></td><td>Install it once with <code>install.packages(\"name\")</code>, then load it with <code>library(name)</code>.</td></tr></table></div>" +
+            "<p>A <b>warning</b> is not an error: the code ran, but R is telling you something looks unusual. Read it, then decide whether it matters.</p>" },
+
+    { type: "text", title: "12. Good habits",
+      html: "<ul><li><b>Write in a script, not in the Console.</b> Save it (<code>.R</code> file) so you can rerun and fix your work. In RStudio, Ctrl+Enter (Cmd+Enter on a Mac) runs the current line.</li>" +
+            "<li><b>One step per line, and run line by line</b> the first time, so you see where a problem starts.</li>" +
+            "<li><b>Comment your code</b> with <code>#</code>: say what a step is for, not what the function is called.</li>" +
+            "<li><b>Use clear names</b>: <code>gdp_uk</code> tells you more than <code>x2</code>.</li>" +
+            "<li><b>Look before you calculate</b>: <code>head()</code>, <code>str()</code> and a quick graph catch most data problems.</li>" +
+            "<li><b>Never change the original data file.</b> Make changes in your script, so every step is written down.</li>" +
+            "<li><b>If things get confusing, start clean</b>: Session › Restart R, then run your script from the top. If it does not run from the top, it is not finished.</li>" +
+            "<li><b>Check a result by hand once.</b> If <code>mean()</code> gives 32.4, does that look right for these numbers?</li></ul>" },
+
+    { type: "text", title: "13. Quick reference",
+      html: "<div class='tablewrap'><table><tr><th>To do this</th><th>Use</th></tr>" +
+            "<tr><td>Store a value</td><td><code>x &lt;- 5</code></td></tr>" +
+            "<tr><td>Make a vector</td><td><code>c(1, 2, 3)</code>, <code>seq(10, 60, by = 10)</code>, <code>1:20</code></td></tr>" +
+            "<tr><td>Read data</td><td><code>read.csv(\"file.csv\")</code></td></tr>" +
+            "<tr><td>Look at data</td><td><code>head()</code>, <code>str()</code>, <code>summary()</code>, <code>nrow()</code></td></tr>" +
+            "<tr><td>Pick a column</td><td><code>data$column</code></td></tr>" +
+            "<tr><td>Pick rows</td><td><code>data[data$x &gt; 10, ]</code>, <code>subset(data, x &gt; 10)</code></td></tr>" +
+            "<tr><td>Sort</td><td><code>sort(x)</code>, <code>data[order(data$x), ]</code></td></tr>" +
+            "<tr><td>Centre</td><td><code>mean()</code>, <code>median()</code>, <code>table()</code> for the mode</td></tr>" +
+            "<tr><td>Spread</td><td><code>var()</code>, <code>sd()</code>, <code>range()</code>, <code>IQR()</code>, <code>quantile()</code></td></tr>" +
+            "<tr><td>Coefficient of variation</td><td><code>sd(x) / mean(x)</code></td></tr>" +
+            "<tr><td>Two variables</td><td><code>cov(x, y)</code>, <code>cor(x, y)</code>, <code>plot(x, y)</code></td></tr>" +
+            "<tr><td>By group</td><td><code>tapply(values, groups, mean)</code></td></tr>" +
+            "<tr><td>Counts and shares</td><td><code>table(x)</code>, <code>prop.table(table(x))</code>, <code>cumsum()</code></td></tr>" +
+            "<tr><td>Classes</td><td><code>cut(x, breaks = ...)</code></td></tr>" +
+            "<tr><td>Graphs</td><td><code>hist()</code>, <code>boxplot()</code>, <code>barplot()</code>, <code>plot()</code></td></tr>" +
+            "<tr><td>Round</td><td><code>round(x, 2)</code></td></tr>" +
+            "<tr><td>Help</td><td><code>?mean</code> in RStudio</td></tr></table></div>" },
+
+    { type: "text", title: "14. Where to get help",
+      html: "<ul><li><b>The help page</b>: <code>?name</code> in RStudio. Scroll to the examples at the bottom first.</li>" +
+            "<li><b>The error message itself</b>: copy it into a search engine; someone has had it before.</li>" +
+            "<li><b>The R companion</b>: <a href='https://www.econometrics-with-r.org/'>Introduction to Econometrics with R</a>, Chapter 1, free online.</li>" +
+            "<li><b>The Moodle forum</b>: post the code, the full error message and what you expected. Answers help everyone.</li>" +
+            "<li><b>The department's weekly R workshop</b> and <b>office hours</b> (Tuesday 3–5 pm, MB 282).</li>" +
+            "<li><b>AI assistants</b> can explain an error or a function. Keep only code you can explain line by line, and check the permitted AI use for each assessment on Moodle.</li></ul>" },
+  ],
+};
+</script>
+<script type="module" src="../assets/seminar.js"></script>
+</body>
+</html>

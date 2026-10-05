@@ -138,3 +138,15 @@ a.card:hover { outline: 3px solid var(--orange); }
   .step-tag { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .status .dot { animation: none; } .progress .fill { transition: none; } }
+
+/* Reading cards and tables (R guide) */
+.prose p { margin-bottom: 10px; }
+.prose ul, .prose ol { margin: 0 0 10px 22px; }
+.prose li { margin-bottom: 5px; }
+.prose pre { background: var(--code-bg); color: var(--code-ink); font-family: var(--mono); font-size: 14px; line-height: 1.5; padding: 12px 14px; border-radius: 8px; margin: 6px 0 12px; overflow-x: auto; white-space: pre-wrap; }
+.prose table { border-collapse: collapse; width: 100%; font-size: 15px; margin: 6px 0 10px; }
+.prose th { background: var(--ink); color: var(--white); text-align: left; padding: 8px 12px; }
+.prose td { padding: 8px 12px; border-top: 1px solid var(--page); vertical-align: top; }
+.prose td:first-child { white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+@media (max-width: 640px) { .prose td:first-child { white-space: normal; } }

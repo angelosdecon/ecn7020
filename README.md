@@ -11,6 +11,7 @@ index.html           landing page: one card per problem set
 assets/seminar.css   shared design (matches the lecture slides)
 assets/seminar.js    shared engine: builds the page, runs R, hints, progress
 ps1/index.html       Problem Set 1: the questions, hints, solutions and data
+r-guide/index.html   a short guide to R for students, with runnable examples
 ```
 
 Each problem set is one folder with one `index.html`, so its address is `.../ecn7020/ps1/`, `.../ecn7020/ps2/` and so on. The design and the R engine are shared, so a fix in `assets/` applies to every problem set.
@@ -32,4 +33,7 @@ Each problem set is one folder with one `index.html`, so its address is `.../ecn
 - `{ type: "write", title, desc, h1, h2, h3 }`: a written question. `h1` is the hint, `h2` the pointers and `h3` the model answer (all HTML).
 - `{ type: "r", title, desc, h1, h2, h3, h3note, code }`: an R question. `h3` is the solution code (plain text), `h3note` an optional line explaining the result, and `code` the starting text in the editor. Add `plot: { width: 900, height: 380 }` for a wider plot.
 
-The second and third hints unlock 30 seconds after the previous one is opened. Change this with `hintDelay` (seconds) in the `window.SEMINAR` block; `0` unlocks everything at once.
+- `{ type: "text", title, html }`: a reading card with no code (used in the R guide).
+- Add `hints: false` to an `r` step to make it a runnable example with no hints, and `progress: false` in the `window.SEMINAR` block to hide the progress bar (both used in the R guide).
+
+The second hint unlocks 10 seconds after the first is opened, and the solution 10 seconds after the second is opened. Change this with `hintDelays: [10, 10]` in the `window.SEMINAR` block; `[0, 0]` unlocks everything at once.
