@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Problem Set 2 Solutions — ECN7020, SOAS Economics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="stylesheet" href="../assets/seminar.css?v=4">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+</head>
+<body>
+<noscript>This page needs JavaScript.</noscript>
+
+<script>
+// ---------------------------------------------------------------------------
+// Problem Set 2 solutions: content only. The layout, the step-by-step reveal,
+// the simulations and the R engine are in ../assets/seminar.js.
+// Maths is written in TeX between \( \) or \[ \] and typeset by KaTeX.
+// ---------------------------------------------------------------------------
+
+// Probability table for Question 2(a), filled in stage by stage.
+function ptab(c, isNew) {
+  const td = (k) => '<td class="' + (isNew.includes(k) ? "new" : (c[k] ? "" : "blank")) + '">' + (c[k] || "?") + "</td>";
+  return "<table class='ptab'><tr><th></th><th>Flagged (F)</th><th>Not flagged (F<sup>c</sup>)</th><th>Total</th></tr>" +
+    "<tr><td><b>Defaults (D)</b></td>" + td("a") + td("b") + td("r1") + "</tr>" +
+    "<tr><td><b>Does not default (D<sup>c</sup>)</b></td>" + td("c") + td("d") + td("r2") + "</tr>" +
+    "<tr><td><b>Total</b></td>" + td("c1") + td("c2") + "<td>1.00</td></tr></table>";
+}
+const T1 = { r1: "0.08", r2: "0.92" };
+const T2 = Object.assign({}, T1, { a: "0.056", c: "0.092" });
+const T3 = Object.assign({}, T2, { b: "0.024", d: "0.828" });
+const T4 = Object.assign({}, T3, { c1: "0.148", c2: "0.852" });
+
+// One random draw for each simulation.
+function drawFirm() {             // Question 1: P(E and F) = 0.12, E only 0.18, F only 0.08, neither 0.62
+  const u = Math.random();
+  return { E: u < 0.30, F: u < 0.12 || (u >= 0.30 && u < 0.38) };
+}
+function drawBorrower() {         // Question 2: P(D) = 0.08, P(F | D) = 0.70, P(F | not D) = 0.10
+  const D = Math.random() < 0.08;
+  return { D, F: Math.random() < (D ? 0.70 : 0.10) };
+}
+function drawProject() {          // Question 3: profit 50 (0.6), 10 (0.3), -40 (0.1), in £ thousands
+  const u = Math.random();
+  return u < 0.6 ? 50 : u < 0.9 ? 10 : -40;
+}
+
+window.SEMINAR = {
+  id: "ps2",
+  eyebrow: "Week 2 · Problem Set 2 · Solutions",
+  title: "Probability, Bayes' Theorem and Random Variables",
+  lead: "Worked solutions for the Week 3 seminar. Each part shows the question, then a solution box that reveals the answer one step at a time: name the events and what we know, write the formula, substitute, and solve.",
+  note: "<b>How it works.</b> Click <b>Show step 1</b> in a solution box, then <b>Next step</b> for each step. You can also click a box and use <b>→</b> (or <b>Page Down</b> on a presentation clicker) to go forward and <b>←</b> to go back. <b>Presentation mode</b> makes everything larger for the projector. Under several answers, <b>Check it by simulation</b> draws firms, borrowers or projects at random and shows the running share settling on the exact answer: watch how many draws it takes. The optional R exercise at the end runs real R code in your browser, with nothing to install.",
+  footer: "ECN7020 · Problem Set 2 · Solutions · discussed in the Week 3 seminar",
+  readyText: "R is ready. Click Run on the R steps at the end of the page.",
+  progress: false,
+  packages: [],
+  setup: "invisible(NULL)",
+  items: [
+
+    // ================================================================== Question 1
+    { type: "section", eyebrow: "Question 1", title: "Probability Rules",
+      text: "<p>In a region, 30% of firms export, 20% are foreign-owned, and 12% both export and are foreign-owned. A firm is chosen at random. Let <i>E</i> be the event that it exports and <i>F</i> the event that it is foreign-owned.</p>" },
+
+    { type: "solution", label: "1(a)", title: "Exports or foreign-owned",
+      question: "Find the probability that the firm exports or is foreign-owned (or both).",
+      steps: [
+        { k: "Name the events and what we know", b: String.raw`<p>\(E\) = the firm exports; \(F\) = the firm is foreign-owned.</p>
+          <p>\(P(E) = 0.30\), \(\;P(F) = 0.20\), \(\;P(E \cap F) = 0.12\).</p>
+          <p>We want \(P(E \cup F)\): exports, or foreign-owned, or both.</p>` },
+        { k: "Write the formula", b: String.raw`<p>The addition rule:</p>\[ P(E \cup F) = P(E) + P(F) - P(E \cap F) \]
+          <p>We subtract \(P(E \cap F)\) because firms that do both are counted once in \(P(E)\) and again in \(P(F)\).</p>` },
+        { k: "Substitute", b: String.raw`\[ P(E \cup F) = 0.30 + 0.20 - 0.12 \]` },
+        { k: "Solve", b: String.raw`\[ P(E \cup F) = 0.50 - 0.12 = 0.38 \]<span class="answer-line">38% of firms export, are foreign-owned, or both.</span>` },
+      ],
+      sim: { intro: "Each draw picks one firm at random from the region. Orange squares are firms that export or are foreign-owned.",
+        target: 0.38, targetLabel: "Exact P(E ∪ F)", xLabel: "Firms drawn (log scale)", yLabel: "Share exporting or foreign-owned",
+        maxDraws: 10000, tol: 0.01, legend: { hit: "Exports or foreign-owned", miss: "Neither" },
+        draw: () => { const f = drawFirm(); return { hit: f.E || f.F }; } } },
+
+    { type: "solution", label: "1(b)", title: "Neither",
+      question: "Find the probability that the firm neither exports nor is foreign-owned.",
+      steps: [
+        { k: "Name the event and what we know", b: String.raw`<p>“Neither” is the opposite (the complement) of “exports or foreign-owned”: the event \((E \cup F)^c\).</p>
+          <p>From part (a), \(P(E \cup F) = 0.38\).</p>` },
+        { k: "Write the formula", b: String.raw`<p>The complement rule:</p>\[ P\big((E \cup F)^c\big) = 1 - P(E \cup F) \]` },
+        { k: "Substitute", b: String.raw`\[ P(\text{neither}) = 1 - 0.38 \]` },
+        { k: "Solve", b: String.raw`\[ P(\text{neither}) = 0.62 \]<span class="answer-line">62% of firms neither export nor are foreign-owned.</span>` },
+      ] },
+
+    { type: "solution", label: "1(c)", title: "Foreign-owned, given that it exports",
+      question: "Given that the firm exports, find the probability that it is foreign-owned.",
+      steps: [
+        { k: "Name the events and what we know", b: String.raw`<p>We want \(P(F \mid E)\): the probability of \(F\) <b>among exporters only</b>.</p>
+          <p>\(P(E) = 0.30\), \(\;P(E \cap F) = 0.12\).</p>` },
+        { k: "Write the formula", b: String.raw`<p>The definition of conditional probability:</p>\[ P(F \mid E) = \frac{P(E \cap F)}{P(E)} \]
+          <p>Conditioning on \(E\) shrinks the population to the exporters, so we divide by \(P(E)\).</p>` },
+        { k: "Substitute", b: String.raw`\[ P(F \mid E) = \frac{0.12}{0.30} \]` },
+        { k: "Solve", b: String.raw`\[ P(F \mid E) = 0.40 \]<span class="answer-line">40% of exporters are foreign-owned, against 20% of all firms.</span>` },
+      ],
+      sim: { intro: "Each draw picks one firm. Only exporters count towards the share (hollow squares are non-exporters, which are ignored), so the share settles more slowly than in 1(a).",
+        target: 0.40, targetLabel: "Exact P(F | E)", xLabel: "Firms drawn (log scale)", yLabel: "Share of exporters foreign-owned",
+        condLabel: "Exporters drawn", maxDraws: 10000, tol: 0.01,
+        legend: { hit: "Exporter, foreign-owned", miss: "Exporter, domestic", out: "Not an exporter (ignored)" },
+        draw: () => { const f = drawFirm(); return { in: f.E, hit: f.F }; } } },
+
+    { type: "solution", label: "1(d)", title: "Mutually exclusive? Independent?",
+      question: "Are <i>E</i> and <i>F</i> mutually exclusive? Are they independent? Explain each answer in one sentence.",
+      steps: [
+        { k: "What the two words mean", b: String.raw`<ul><li><b>Mutually exclusive:</b> the events cannot happen together, so \(P(E \cap F) = 0\).</li>
+          <li><b>Independent:</b> knowing one happened does not change the probability of the other, so \(P(F \mid E) = P(F)\), or equivalently \(P(E \cap F) = P(E)\,P(F)\).</li></ul>` },
+        { k: "Check: mutually exclusive?", b: String.raw`\[ P(E \cap F) = 0.12 \neq 0 \]<span class="answer-line">Not mutually exclusive: 12% of firms both export and are foreign-owned.</span>` },
+        { k: "Check: independent?", b: String.raw`\[ P(E)\,P(F) = 0.30 \times 0.20 = 0.06 \neq 0.12 = P(E \cap F) \]
+          <p>Equivalently, \(P(F \mid E) = 0.40 \neq 0.20 = P(F)\).</p><span class="answer-line">Not independent: exporters are twice as likely to be foreign-owned as firms in general.</span>` },
+      ] },
+
+    // ================================================================== Question 2
+    { type: "section", eyebrow: "Question 2", title: "Bayes' Theorem: Who Gets Flagged?",
+      text: "<p>At a bank, 8% of borrowers go on to default. The bank's credit model flags 70% of the borrowers who go on to default, and it also flags 10% of the borrowers who do not default.</p>" },
+
+    { type: "solution", label: "2(a)", title: "Complete the probability table",
+      question: "Complete the probability table. (Hint: fill in the two row totals first; each cell is a conditional probability multiplied by a row total.)" + ptab({}, []),
+      steps: [
+        { k: "Name the events and what we know", b: String.raw`<p>\(D\) = the borrower defaults; \(F\) = the borrower is flagged.</p>
+          <p>\(P(D) = 0.08\), \(\;P(F \mid D) = 0.70\), \(\;P(F \mid D^c) = 0.10\).</p>` },
+        { k: "Write the formulas", b: String.raw`<p>Row totals, by the complement rule: \(\;P(D^c) = 1 - P(D)\).</p>
+          <p>Each cell, by the multiplication rule:</p>\[ P(D \cap F) = P(F \mid D)\,P(D) \qquad P(D^c \cap F) = P(F \mid D^c)\,P(D^c) \]` },
+        { k: "Row totals", b: String.raw`\[ P(D) = 0.08 \qquad P(D^c) = 1 - 0.08 = 0.92 \]` + ptab(T1, ["r1", "r2"]) },
+        { k: "Substitute into the Flagged column", b: String.raw`\[ P(D \cap F) = 0.70 \times 0.08 = 0.056 \qquad P(D^c \cap F) = 0.10 \times 0.92 = 0.092 \]` + ptab(T2, ["a", "c"]) },
+        { k: "Not flagged: what is left of each row", b: String.raw`\[ P(D \cap F^c) = 0.08 - 0.056 = 0.024 \qquad P(D^c \cap F^c) = 0.92 - 0.092 = 0.828 \]` + ptab(T3, ["b", "d"]) },
+        { k: "Column totals", b: String.raw`\[ P(F) = 0.056 + 0.092 = 0.148 \qquad P(F^c) = 0.024 + 0.828 = 0.852 \]` + ptab(T4, ["c1", "c2"]) +
+          '<span class="answer-line">Check: the four cells add up to 1.00.</span>' },
+      ] },
+
+    { type: "solution", label: "2(b)", title: "How many borrowers are flagged?",
+      question: "What is the probability that a randomly chosen borrower is flagged?",
+      steps: [
+        { k: "Name the event and what we know", b: String.raw`<p>We want \(P(F)\). A borrower can be flagged in two ways: a defaulter who is flagged, or a non-defaulter who is flagged.</p>
+          <p>\(P(F \mid D) = 0.70\), \(P(D) = 0.08\), \(P(F \mid D^c) = 0.10\), \(P(D^c) = 0.92\).</p>` },
+        { k: "Write the formula", b: String.raw`<p>The law of total probability:</p>\[ P(F) = P(F \mid D)\,P(D) + P(F \mid D^c)\,P(D^c) \]` },
+        { k: "Substitute", b: String.raw`\[ P(F) = 0.70 \times 0.08 + 0.10 \times 0.92 \]` },
+        { k: "Solve", b: String.raw`\[ P(F) = 0.056 + 0.092 = 0.148 \]<span class="answer-line">14.8% of borrowers are flagged: the Flagged column total in the table.</span>` },
+      ],
+      sim: { intro: "Each draw is one borrower: first we draw whether they default (8%), then whether the model flags them (70% of defaulters, 10% of the rest). Orange squares are flagged borrowers.",
+        target: 0.148, targetLabel: "Exact P(F)", xLabel: "Borrowers drawn (log scale)", yLabel: "Share flagged",
+        maxDraws: 10000, tol: 0.01, legend: { hit: "Flagged", miss: "Not flagged" },
+        draw: () => ({ hit: drawBorrower().F }) } },
+
+    { type: "solution", label: "2(c)", title: "Flagged: how likely is default?",
+      question: "A borrower is flagged. What is the probability that they will default?",
+      steps: [
+        { k: "Name the events and what we know", b: String.raw`<p>We want \(P(D \mid F)\): the probability of default <b>among flagged borrowers</b>. We know the reverse, \(P(F \mid D) = 0.70\), so we need Bayes' theorem.</p>
+          <p>\(P(D) = 0.08\) (the prior), \(\;P(F \mid D) = 0.70\), \(\;P(F) = 0.148\) from part (b).</p>` },
+        { k: "Write the formula", b: String.raw`<p>Bayes' theorem:</p>\[ P(D \mid F) = \frac{P(F \mid D)\,P(D)}{P(F)} \]
+          <p>posterior = likelihood × prior ÷ evidence. The numerator is the Defaults-and-Flagged cell of the table; the denominator is the Flagged column total.</p>` },
+        { k: "Substitute", b: String.raw`\[ P(D \mid F) = \frac{0.70 \times 0.08}{0.148} = \frac{0.056}{0.148} \]` },
+        { k: "Solve", b: String.raw`\[ P(D \mid F) = 0.378 \]<span class="answer-line">About 38% of flagged borrowers default: the flag raises the probability from 8% to 38%.</span>` },
+      ],
+      sim: { intro: "Each draw is one borrower. Only flagged borrowers count (hollow squares are borrowers who were not flagged). Since only about 15% are flagged, it takes many more draws to settle than in 2(b).",
+        target: 0.378, targetLabel: "Exact P(D | F)", xLabel: "Borrowers drawn (log scale)", yLabel: "Share of flagged who default",
+        condLabel: "Flagged so far", maxDraws: 50000, tol: 0.01,
+        legend: { hit: "Flagged, defaults", miss: "Flagged, repays", out: "Not flagged (ignored)" },
+        draw: () => { const b = drawBorrower(); return { in: b.F, hit: b.D }; } } },
+
+    { type: "solution", label: "2(d)", title: "Not flagged: how likely is default?",
+      question: "A borrower is <em>not</em> flagged. What is the probability that they will default?",
+      steps: [
+        { k: "Name the events and what we know", b: String.raw`<p>We want \(P(D \mid F^c)\): the probability of default among borrowers who are <b>not</b> flagged.</p>
+          <p>\(P(D) = 0.08\), \(\;P(F^c \mid D) = 1 - 0.70 = 0.30\) (defaulters the model misses), \(\;P(F^c) = 1 - 0.148 = 0.852\).</p>` },
+        { k: "Write the formula", b: String.raw`<p>Bayes' theorem, with “not flagged” as the evidence:</p>\[ P(D \mid F^c) = \frac{P(F^c \mid D)\,P(D)}{P(F^c)} \]` },
+        { k: "Substitute", b: String.raw`\[ P(D \mid F^c) = \frac{0.30 \times 0.08}{0.852} = \frac{0.024}{0.852} \]` },
+        { k: "Solve", b: String.raw`\[ P(D \mid F^c) = 0.028 \]<span class="answer-line">About 2.8% of borrowers who are not flagged default, down from 8%.</span>` },
+      ],
+      sim: { intro: "Only borrowers who are not flagged count. Default is rare in this group, so the share is close to zero and the band is narrower (±0.005).",
+        target: 0.028, targetLabel: "Exact P(D | not F)", xLabel: "Borrowers drawn (log scale)", yLabel: "Share of unflagged who default",
+        condLabel: "Not flagged so far", maxDraws: 50000, tol: 0.005, yRange: [0, 0.2], yTicks: [0, 0.05, 0.1, 0.15, 0.2],
+        legend: { hit: "Not flagged, defaults", miss: "Not flagged, repays", out: "Flagged (ignored)" },
+        draw: () => { const b = drawBorrower(); return { in: !b.F, hit: b.D }; } } },
+
+    { type: "solution", label: "2(e)", title: "Why do most flagged borrowers repay?",
+      question: "The model catches 70% of defaulters, yet most flagged borrowers do not default. Explain why in one or two sentences.",
+      steps: [
+        { k: "Compare the two ways of being flagged", b: String.raw`\[ \underbrace{P(D \cap F) = 0.056}_{\text{defaulters, rightly flagged}} \qquad \underbrace{P(D^c \cap F) = 0.092}_{\text{non-defaulters, wrongly flagged}} \]
+          <p>Wrong flags outnumber right ones.</p>` },
+        { k: "The same in counts: 1,000 borrowers", b: String.raw`<ul><li>80 default, and the model flags 70% of them: <b>56</b>.</li>
+          <li>920 do not default, and the model flags 10% of them: <b>92</b>.</li>
+          <li>148 are flagged, of whom 56 default: \(56 / 148 = 38\%\).</li></ul>` },
+        { k: "The reason: the base rate", b: String.raw`<p>Defaulters are rare (8%), so a small error rate applied to the large group of good borrowers produces more flags than a high catch rate applied to the small group of defaulters. This is the base-rate effect.</p>
+          <span class="answer-line">The flag is still informative: it raises the probability of default from 8% to 38%, and no flag lowers it to 2.8%.</span>` },
+      ] },
+
+    // ================================================================== Question 3
+    { type: "section", eyebrow: "Question 3", title: "Expected Value and Variance",
+      text: "<p>An investment project will return a profit of £50,000 with probability 0.6, a profit of £10,000 with probability 0.3, or a loss of £40,000 with probability 0.1. Let <i>X</i> be the profit in £ thousands.</p>" },
+
+    { type: "solution", label: "3(a)", title: "The probability distribution",
+      question: "Write out the probability distribution of <i>X</i> as a table and check that it is valid.",
+      steps: [
+        { k: "Define the random variable", b: String.raw`<p>\(X\) = profit in £ thousands. It can take three values: \(50\), \(10\) and \(-40\) (a loss).</p>` },
+        { k: "The table", b: "<table class='ptab'><tr><th>x</th><th>50</th><th>10</th><th>−40</th></tr><tr><td><b>P(X = x)</b></td><td>0.6</td><td>0.3</td><td>0.1</td></tr></table>" },
+        { k: "Check that it is valid", b: String.raw`<p>Two conditions: every probability is between 0 and 1, and they sum to 1.</p>\[ 0.6 + 0.3 + 0.1 = 1.0 \]<span class="answer-line">Valid.</span>` },
+      ] },
+
+    { type: "solution", label: "3(b)", title: "Expected profit",
+      question: "Find the expected value of <i>X</i>.",
+      steps: [
+        { k: "Write the formula", b: String.raw`\[ E(X) = \sum x\,P(X = x) \]<p>Each value weighted by its probability.</p>` },
+        { k: "Substitute", b: String.raw`\[ E(X) = 50 \times 0.6 + 10 \times 0.3 + (-40) \times 0.1 \]` },
+        { k: "Solve", b: String.raw`\[ E(X) = 30 + 3 - 4 = 29 \]<span class="answer-line">Expected profit: £29,000.</span>` },
+        { k: "What it means", b: "<p>No single project makes £29,000. It is the long-run average profit per project if the same project were run many times.</p>" },
+      ],
+      sim: { intro: "Each draw runs the project once. The line is the running average profit across all the projects drawn so far.",
+        mode: "mean", target: 29, targetLabel: "Exact E(X)", xLabel: "Projects run (log scale)", yLabel: "Average profit (£000)",
+        maxDraws: 10000, tol: 1, decimals: 1, yRange: [-40, 50], yTicks: [-40, -20, 0, 20, 40],
+        draw: () => ({ value: drawProject() }) } },
+
+    { type: "solution", label: "3(c)", title: "Variance and standard deviation",
+      question: String.raw`Find the variance and the standard deviation of <i>X</i>. (Hint: use \(\mathrm{Var}(X) = E(X^2) - \mu^2\).)`,
+      steps: [
+        { k: "Write the formulas", b: String.raw`\[ \mathrm{Var}(X) = E(X^2) - \mu^2, \qquad E(X^2) = \sum x^2\,P(X = x), \qquad \sigma = \sqrt{\mathrm{Var}(X)} \]
+          <p>with \(\mu = E(X) = 29\) from part (b).</p>` },
+        { k: "Find E(X²)", b: String.raw`\[ E(X^2) = 50^2 \times 0.6 + 10^2 \times 0.3 + (-40)^2 \times 0.1 \]\[ = 2{,}500 \times 0.6 + 100 \times 0.3 + 1{,}600 \times 0.1 = 1{,}500 + 30 + 160 = 1{,}690 \]` },
+        { k: "Substitute into the variance", b: String.raw`\[ \mathrm{Var}(X) = 1{,}690 - 29^2 = 1{,}690 - 841 = 849 \]<p>(in £ thousands squared, which is hard to interpret, so we take the square root).</p>` },
+        { k: "Standard deviation", b: String.raw`\[ \sigma = \sqrt{849} = 29.1 \]<span class="answer-line">Standard deviation: about £29,100, as large as the mean itself.</span>` },
+      ] },
+
+    { type: "solution", label: "3(d)", title: "Profit of £10,000 or less",
+      question: String.raw`Find \(P(X \le 10)\).`,
+      steps: [
+        { k: "Which values count?", b: String.raw`<p>\(X \le 10\) happens when the profit is \(10\) or \(-40\).</p>` },
+        { k: "Write the formula", b: String.raw`\[ P(X \le 10) = P(X = 10) + P(X = -40) \]<p>Add the probabilities of the values that satisfy the condition (the cumulative distribution at 10).</p>` },
+        { k: "Substitute and solve", b: String.raw`\[ P(X \le 10) = 0.3 + 0.1 = 0.4 \]<span class="answer-line">A 40% chance that profit is £10,000 or less.</span>` },
+      ],
+      sim: { intro: "Each draw runs the project once. Orange squares are runs with a profit of £10,000 or less.",
+        target: 0.4, targetLabel: "Exact P(X ≤ 10)", xLabel: "Projects run (log scale)", yLabel: "Share with profit ≤ £10,000",
+        maxDraws: 10000, tol: 0.01, legend: { hit: "Profit ≤ £10,000", miss: "Profit £50,000" },
+        draw: () => ({ hit: drawProject() <= 10 }) } },
+
+    { type: "solution", label: "3(e)", title: "After a fixed fee",
+      question: "A consultant charges a fixed fee of £5,000 whatever the outcome. What are the mean and the standard deviation of the profit after the fee?",
+      steps: [
+        { k: "Define the new variable", b: String.raw`<p>Profit after the fee: \(Y = X - 5\) (in £ thousands). This is \(a + bX\) with \(a = -5\) and \(b = 1\).</p>` },
+        { k: "Write the rules", b: String.raw`\[ E(a + bX) = a + b\,E(X) \qquad \mathrm{SD}(a + bX) = |b|\,\mathrm{SD}(X) \]` },
+        { k: "Substitute and solve: the mean", b: String.raw`\[ E(Y) = -5 + 1 \times 29 = 24 \]<span class="answer-line">Mean profit after the fee: £24,000.</span>` },
+        { k: "Substitute and solve: the standard deviation", b: String.raw`\[ \mathrm{SD}(Y) = 1 \times 29.1 = 29.1 \]<span class="answer-line">Unchanged at about £29,100: subtracting a constant shifts every outcome by the same amount, so the spread does not change.</span>` },
+      ] },
+
+    { type: "solution", label: "3(f)", title: "The project or £20,000 for certain?",
+      question: "A safe alternative pays £20,000 for certain. Which would you choose, and why?",
+      steps: [
+        { k: "Compare the centres", b: "<p>The project's expected profit is £29,000 (£24,000 after the fee), more than the safe £20,000.</p>" },
+        { k: "Compare the spreads", b: String.raw`<p>The project's standard deviation (£29,100) is as large as its mean, and there is a 10% chance of losing £40,000. The safe option has no spread at all.</p>` },
+        { k: "Decide", b: "<p>There is no single right answer. A risk-neutral investor takes the project for its higher mean; a risk-averse investor, or one who cannot afford a £40,000 loss, may reasonably take the safe £20,000.</p><span class=\"answer-line\">Good answers compare both the centre and the spread.</span>" },
+      ] },
+
+    // ================================================================== Optional R
+    { type: "section", eyebrow: "Optional · In R", title: "Simulating Coin Tosses",
+      text: "<p>There are no R questions this week. As in the problem set, run the coin-toss simulation from the lecture slide “Simulating Coin Tosses” (also in <code>week2.R</code> on Moodle) and make sure you can explain what the plot shows. The extension links it to Question 2. R takes a minute to start the first time; the status at the top of the page turns green when it is ready.</p>" },
+
+    { type: "r", title: "Toss a coin 1,000 times", plot: { width: 680, height: 420 },
+      desc: "Simulate 1,000 tosses of a fair coin (1 = heads, 0 = tails). Calculate the proportion of heads after each toss and plot it against the number of tosses, with a dashed line at 0.5. Use a log scale for the number of tosses, as on the slide.",
+      h1: "Store the tosses as 0s and 1s. The proportion of heads after <i>k</i> tosses is the number of heads so far divided by <i>k</i>.",
+      h2: "<code>sample(c(0, 1), size = 1000, replace = TRUE)</code> tosses the coin. <code>cumsum()</code> gives the running number of heads; divide by <code>1:1000</code>. Then <code>plot(..., type = \"l\", log = \"x\")</code> and <code>abline(h = 0.5, lty = 2)</code>. <code>set.seed()</code> makes the result repeatable.",
+      h3: "set.seed(2026)                    # so that we all get the same tosses\ntosses <- sample(c(0, 1), size = 1000, replace = TRUE)\nrunning <- cumsum(tosses) / (1:1000)\n\nplot(running, type = \"l\", log = \"x\", ylim = c(0, 1), col = \"#2A5A88\", lwd = 2,\n     xlab = \"Number of tosses\", ylab = \"Proportion of heads\")\nabline(h = 0.5, lty = 2, col = \"#E36533\", lwd = 2)\n\nrunning[c(10, 100, 1000)]        # the proportion after 10, 100 and 1,000 tosses\nrange(running[500:1000])         # lowest and highest proportion over the last 500 tosses",
+      h3note: "The line jumps around a lot over the first few tosses, then settles into a narrow band around 0.5. With this seed the proportion of heads is 0.400 after 10 tosses, 0.470 after 100 and 0.527 after 1,000. Getting closer at every point is not guaranteed (0.527 is further from 0.5 than 0.470), but the big swings stop: over the last 500 tosses the proportion stays between 0.517 and 0.529, slightly above 0.5 and drifting slowly towards it. Try a different number in <code>set.seed()</code>: the start changes a lot, the end much less.",
+      code: "# Simulate 1,000 coin tosses and plot the running proportion of heads\n" },
+
+    { type: "write", title: "What does the plot show?",
+      desc: "Explain in two or three sentences what the plot shows. Why does the line move so much at the start and so little at the end?",
+      h1: "Compare what one extra toss does to the proportion after 5 tosses and after 500 tosses.",
+      h2: "<ul><li>Probability as a <b>long-run relative frequency</b>.</li><li>Each new toss changes the proportion by at most 1 ÷ (number of tosses so far).</li><li>Does the coin “make up” for a run of heads?</li></ul>",
+      h3: "<p>The proportion of heads is very variable after a few tosses but settles near 0.5 as the number of tosses grows: probability is the long-run relative frequency (the law of large numbers, which we meet properly in Week 3). At the start one toss moves the proportion a lot; after 500 tosses it can move it by at most 1/500.</p><p>The coin does not compensate for a run of heads: the early swings are not cancelled out, they are diluted by the many tosses that follow.</p>" },
+
+    { type: "r", title: "Extension: simulate the bank's credit model (Question 2)", plot: { width: 680, height: 420 },
+      desc: "Simulate 100,000 borrowers: each defaults with probability 0.08; the model flags a defaulter with probability 0.70 and a non-defaulter with probability 0.10. Use the simulated borrowers to estimate <i>P</i>(<i>F</i>), <i>P</i>(<i>D</i> | <i>F</i>) and <i>P</i>(<i>D</i> | not <i>F</i>), and compare them with 0.148, 0.378 and 0.028.",
+      h1: "Draw whether each borrower defaults first. Then draw whether they are flagged, with a probability that depends on whether they default.",
+      h2: "<code>runif(n) &lt; 0.08</code> gives TRUE with probability 0.08. <code>ifelse(default, runif(n) &lt; 0.70, runif(n) &lt; 0.10)</code> uses a different probability for each group. <code>mean()</code> of a TRUE/FALSE vector is the share TRUE, and <code>default[flagged]</code> keeps only the flagged borrowers.",
+      h3: "set.seed(2026)\nn <- 100000\ndefault <- runif(n) < 0.08\nflagged <- ifelse(default, runif(n) < 0.70, runif(n) < 0.10)\n\nmean(flagged)              # P(F),        exact 0.148\nmean(default[flagged])     # P(D | F),    exact 0.378\nmean(default[!flagged])    # P(D | not F), exact 0.028\n\n# How the estimate of P(D | F) settles as more borrowers are drawn\nrunning <- cumsum(default & flagged) / cumsum(flagged)\nplot(running, type = \"l\", log = \"x\", ylim = c(0, 1), col = \"#2A5A88\", lwd = 2,\n     xlab = \"Number of borrowers\", ylab = \"Share of flagged who default\")\nabline(h = 0.378, lty = 2, col = \"#E36533\", lwd = 2)",
+      h3note: "The three simulated shares come out close to 0.148, 0.378 and 0.028. They differ slightly from the exact answers, and change with the seed, because they come from a finite number of random borrowers. The plot starts only once the first flagged borrower appears, and takes longer to settle than the coin, because only about 15% of borrowers are flagged.",
+      code: "# Simulate 100,000 borrowers and estimate P(F), P(D | F) and P(D | not F)\n" },
+  ],
+};
+</script>
+<script type="module" src="../assets/seminar.js?v=4"></script>
+</body>
+</html>

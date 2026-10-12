@@ -166,3 +166,86 @@ a.card:hover { outline: 3px solid var(--orange); }
 .qg-open:focus-visible, .qg-close:focus-visible, .hint-btn:focus-visible, .run-btn:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 /* On a wide screen the page moves over, so the panel does not cover the work */
 @media (min-width: 1180px) { body.qg-is-open { padding-right: 460px; } body.qg-is-open .qg-open { display: none; } }
+
+/* ---- Worked solutions revealed step by step (Problem Set 2 onwards) ---- */
+.soltools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 4px; }
+.tool-btn { font: inherit; font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 999px; border: 2px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer; }
+.tool-btn:hover, .tool-btn[aria-pressed="true"] { background: var(--ink); color: var(--white); }
+.soltools-tip { font-size: 13px; color: var(--grey); margin-left: 4px; }
+kbd { font-family: var(--mono); font-size: 12px; background: var(--white); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+.sol-label { flex: 0 0 auto; min-width: 44px; height: 34px; padding: 0 12px; border-radius: 999px; background: var(--orange); color: var(--white); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+.step.sol.complete .sol-label { background: var(--green); }
+.sol-q { font-size: 17px; margin-bottom: 14px; }
+.sol-q p { margin-bottom: 8px; }
+.sol-box { border: 2px solid var(--line); border-radius: var(--radius); padding: 12px 16px 6px; background: #FAFAFA; }
+.sol-box.active { border-color: var(--orange); }
+.sol-box:focus { outline: none; }
+.sol-box:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.sol-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.sol-count { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--grey); }
+.sol-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.sol-btn { font: inherit; font-size: 14px; font-weight: 700; padding: 6px 14px; border-radius: 6px; border: 2px solid var(--line); background: var(--white); color: var(--grey); cursor: pointer; }
+.sol-btn.next { background: var(--orange); border-color: var(--orange); color: var(--white); }
+.sol-btn:disabled { opacity: 0.45; cursor: default; }
+.sol-btn:not(:disabled):hover { border-color: var(--orange); }
+.sol-steps { list-style: none; }
+.sol-step { display: none; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; background: var(--white); border-left: 6px solid var(--blue); }
+.sol-step.show { display: block; animation: solin 0.35s ease; }
+.sol-step:nth-child(4n+2) { border-left-color: var(--green); }
+.sol-step:nth-child(4n+3) { border-left-color: var(--orange); }
+.sol-step:nth-child(4n+4) { border-left-color: var(--ink); }
+.sol-k { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--grey); margin-bottom: 4px; }
+.sol-b p { margin-bottom: 6px; }
+.sol-b ul { margin: 2px 0 6px 20px; }
+.sol-b .katex-display { margin: 6px 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.sol-b .answer-line { display: inline-block; background: var(--peach-bg); border-radius: 6px; padding: 4px 10px; font-weight: 700; margin-top: 2px; }
+table.ptab { border-collapse: collapse; background: var(--white); font-size: 15px; margin: 6px 0; }
+table.ptab th, table.ptab td { border: 1px solid var(--line); padding: 6px 12px; text-align: center; }
+table.ptab th { background: var(--ink); color: var(--white); }
+table.ptab td:first-child, table.ptab th:first-child { text-align: left; }
+table.ptab td.new { background: var(--peach-bg); font-weight: 700; }
+table.ptab td.blank { color: #BBB; }
+@keyframes solin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---- Live simulations ---- */
+.sim-open { font: inherit; font-size: 15px; font-weight: 700; margin-top: 14px; padding: 9px 16px; border-radius: 8px; border: 2px solid var(--blue); background: var(--blue-bg); color: var(--blue); cursor: pointer; }
+.sim-open:hover { background: var(--blue); color: var(--white); }
+.sim-holder { margin-top: 12px; }
+.sim { background: var(--white); border: 2px solid var(--blue-bg); border-radius: var(--radius); padding: 14px 16px; }
+.sim-intro { font-size: 15px; margin-bottom: 10px; }
+.sim-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.sim-btn { font: inherit; font-size: 14px; font-weight: 700; padding: 7px 16px; border-radius: 6px; border: none; background: var(--blue); color: var(--white); cursor: pointer; }
+.sim-btn.reset { background: var(--white); color: var(--blue); border: 2px solid var(--blue); }
+.sim-btn:disabled { opacity: 0.45; cursor: default; }
+.sim-speed { font-size: 14px; color: var(--grey); margin-left: 6px; }
+.sim-speed select { font: inherit; font-size: 14px; padding: 4px 6px; border-radius: 6px; border: 2px solid var(--line); background: var(--white); }
+.sim-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.sim-stats > div { background: var(--page); border-radius: 8px; padding: 6px 12px; min-width: 104px; }
+.sim-stats .sl { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--grey); }
+.sim-stats .sv { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.sim-stats .s-est { color: var(--blue); }
+.sim-stats .s-t { color: var(--orange); }
+.sim-canvas canvas { display: block; width: 100%; height: 280px; }
+.sim-strip { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 8px; min-height: 14px; }
+.sim-strip i, .sim-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+i.hit { background: var(--orange); }
+i.miss { background: var(--blue); }
+i.out { background: var(--white); border: 2px solid var(--line); }
+.sim-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--grey); margin-top: 6px; }
+.sim-legend i { vertical-align: -1px; margin-right: 5px; }
+.sim-last { font-family: var(--mono); font-size: 14px; color: var(--grey); margin-top: 6px; }
+.sim-msg { font-size: 15px; margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--green-bg); }
+
+/* Presentation mode: larger text for projecting in class */
+body.present { font-size: 20px; }
+body.present .wrap { max-width: 1240px; }
+body.present .sol-q { font-size: 23px; }
+body.present .sol-b, body.present .sol-k { font-size: 22px; }
+body.present .sol-k { font-size: 15px; }
+body.present .step-title { font-size: 25px; }
+body.present table.ptab { font-size: 20px; }
+body.present .sim-canvas canvas { height: 380px; }
+body.present .sim-stats .sv { font-size: 26px; }
+body.present .qg-open { display: none; }
+@media (prefers-reduced-motion: reduce) { .sol-step.show { animation: none; } }
+@media (max-width: 640px) { .soltools-tip { display: none; } .sim-canvas canvas { height: 220px; } }
