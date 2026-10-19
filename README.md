@@ -12,6 +12,8 @@ assets/seminar.css   shared design (matches the lecture slides)
 assets/seminar.js    shared engine: builds the page, runs R, hints, progress
 assets/quickguide.js the text of the "R quick guide" side panel shown on every page
 ps1/index.html       Problem Set 1: the questions, hints, solutions and data
+ps2/index.html       Problem Set 2: step-by-step solutions
+ps3/index.html       Problem Set 3: step-by-step solutions and the R questions
 r-guide/index.html   a short guide to R for students, with runnable examples
 ```
 
