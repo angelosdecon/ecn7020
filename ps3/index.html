@@ -43,6 +43,54 @@ function drawRentMean() {         // Question 4: mean rent of 36 flats; rents wi
   return s / 36;
 }
 
+
+// Small sketch of a normal curve with the area we want shaded (inline SVG).
+// o: { mu, sd, a, b: limits of the shaded area (null = minus/plus infinity), ticks: [x values],
+//      zLabels: true, area: text shown in the shaded area, cut: text above a cut-off, unit, title, w, h }
+function ncurve(o) {
+  const W = o.w || 520, H = o.h || 190, L = 14, R = 14, T = o.title ? 26 : 10, B = o.zLabels === false ? 30 : 46;
+  const mu = o.mu, sd = o.sd, lo = mu - 3.6 * sd, hi = mu + 3.6 * sd;
+  const X = (x) => L + (x - lo) / (hi - lo) * (W - L - R);
+  const pdf = (x) => Math.exp(-0.5 * ((x - mu) / sd) ** 2);
+  const Y = (v) => T + (1 - v) * (H - T - B) ;
+  const base = Y(0);
+  let curve = "", n = 160;
+  for (let i = 0; i <= n; i++) { const x = lo + (hi - lo) * i / n; curve += (i ? "L" : "M") + X(x).toFixed(1) + " " + Y(pdf(x)).toFixed(1); }
+  const a = o.a === null || o.a === undefined ? lo : o.a, b = o.b === null || o.b === undefined ? hi : o.b;
+  let area = "M" + X(a).toFixed(1) + " " + base;
+  for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n; area += "L" + X(x).toFixed(1) + " " + Y(pdf(x)).toFixed(1); }
+  area += "L" + X(b).toFixed(1) + " " + base + "Z";
+  const u = o.unit || "";
+  let g = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (o.alt || "Normal curve with the area we want shaded") +
+    '" style="width:100%;max-width:' + W + 'px;display:block;margin:10px 0;background:#FFFFFF;border-radius:8px">';
+  if (o.title) g += '<text x="' + (W / 2) + '" y="17" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#1A1A1A">' + o.title + '</text>';
+  g += '<path d="' + area + '" fill="#E36533" fill-opacity="0.55"/>';
+  g += '<path d="' + curve + '" fill="none" stroke="#2A5A88" stroke-width="2.2"/>';
+  g += '<line x1="' + L + '" y1="' + base + '" x2="' + (W - R) + '" y2="' + base + '" stroke="#1A1A1A" stroke-width="1"/>';
+  (o.ticks || []).forEach((x) => {
+    const z = (x - mu) / sd, zt = Math.abs(z - Math.round(z)) < 1e-9 ? String(Math.round(z)).replace("-", "−") : z.toFixed(2).replace(/0$/, "").replace("-", "−");
+    g += '<line x1="' + X(x) + '" y1="' + base + '" x2="' + X(x) + '" y2="' + (base + 5) + '" stroke="#1A1A1A"/>';
+    g += '<text x="' + X(x) + '" y="' + (base + 18) + '" text-anchor="middle" font-family="Arial" font-size="12" fill="#1A1A1A">' + u + x.toLocaleString("en-GB") + '</text>';
+    if (o.zLabels !== false) g += '<text x="' + X(x) + '" y="' + (base + 34) + '" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#E36533">z = ' + zt + '</text>';
+  });
+  if (o.dashed) o.dashed.forEach((x) => { g += '<line x1="' + X(x) + '" y1="' + Y(pdf(x)) + '" x2="' + X(x) + '" y2="' + base + '" stroke="#1A1A1A" stroke-dasharray="4 3"/>'; });
+  if (o.area) {
+    const ax = o.areaAt !== undefined ? o.areaAt : (Math.max(a, lo) + Math.min(b, hi)) / 2;
+    const ay = o.areaY !== undefined ? o.areaY : (base + Y(pdf(ax))) / 2 + 6;
+    g += '<text x="' + X(ax) + '" y="' + ay + '" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#1A1A1A">' + o.area + '</text>';
+  }
+  if (o.note) g += '<text x="' + X(o.note.at) + '" y="' + (o.note.y || T + 14) + '" text-anchor="' + (o.note.anchor || "middle") + '" font-family="Arial" font-size="12" fill="#555555">' + o.note.text + '</text>';
+  return g + "</svg>";
+}
+// Several small curves side by side (for "area to the left of b minus area to the left of a").
+function nrow(items, sep) {
+  return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">' +
+    items.map((it, i) => (i ? '<span style="font-size:26px;font-weight:bold;color:#1A1A1A">' + sep[i - 1] + '</span>' : '') +
+      '<div style="flex:1;min-width:190px">' + ncurve(Object.assign({ w: 300, h: 150 }, it)) + '</div>').join("") + "</div>";
+}
+const SP = { mu: 150, sd: 30, unit: "£" };   // Question 2: X ~ N(150, 30²)
+const RENT = { mu: 1200, sd: 50, unit: "£" }; // Question 4(a): sample mean of 36 rents, SE = 50
+
 window.SEMINAR = {
   id: "ps3",
   eyebrow: "Week 3 · Problem Set 3 · Solutions",
@@ -127,10 +175,12 @@ window.SEMINAR = {
       question: "What is the <i>z</i>-score of a household that spends £120? Interpret it, and find the probability that a household spends less than £120.",
       steps: [
         { k: "Define the variable and what we know", b: String.raw`<p>\(X\) = a household's monthly energy spending, in £.</p>\[ X \sim N(\mu, \sigma^2) = N(150,\ 30^2) \]
-          <p>We want the \(z\)-score of \(x = 120\), and \(P(X < 120)\): the area to the <b>left</b> of 120.</p>` },
+          <p>We want the \(z\)-score of \(x = 120\), and \(P(X < 120)\): the area to the <b>left</b> of 120.</p>` +
+          ncurve(Object.assign({}, SP, { b: 120, ticks: [90, 120, 150, 180, 210], zLabels: false, area: "?", areaAt: 108, areaY: 132, alt: "Normal curve centred on £150 with the area to the left of £120 shaded" })) },
         { k: "Write the formula", b: String.raw`<p>Standardise: how many standard deviations \(x\) is from the mean.</p>\[ z = \frac{x - \mu}{\sigma}, \qquad P(X < x) = P(Z < z) \]` },
         { k: "Substitute and compute z", b: String.raw`\[ z = \frac{120 - 150}{30} = \frac{-30}{30} = -1 \]<span class="answer-line">The household spends one standard deviation less than the average household.</span>` },
-        { k: "Read the probability", b: String.raw`\[ P(X < 120) = P(Z < -1) = 0.1587 \]<span class="answer-line">About 16% of households spend less than £120 a month.</span>
+        { k: "Read the probability", b: String.raw`\[ P(X < 120) = P(Z < -1) = 0.1587 \]<span class="answer-line">About 16% of households spend less than £120 a month.</span>` +
+          ncurve(Object.assign({}, SP, { b: 120, ticks: [90, 120, 150, 180, 210], area: "0.1587", areaAt: 106, areaY: 128, dashed: [120], alt: "The area to the left of £120, z = −1, is 0.1587" })) + String.raw`
           <p>From the table, \(P(Z < 1) = 0.8413\), so \(P(Z < -1) = 1 - 0.8413\). In R: <code>pnorm(120, 150, 30)</code>.</p>` },
       ],
       sim: { intro: "Each draw is one household's monthly spending, drawn from N(150, 30²). Orange squares are households spending less than £120.",
@@ -141,11 +191,15 @@ window.SEMINAR = {
     { type: "solution", label: "2(b)", title: "Between £135 and £180",
       question: "Find the probability that a household spends between £135 and £180.",
       steps: [
-        { k: "Define the event", b: String.raw`<p>We want \(P(135 < X < 180)\): the area under the curve between 135 and 180, a little below the mean to one standard deviation above it.</p>` },
+        { k: "Define the event", b: String.raw`<p>We want \(P(135 < X < 180)\): the area under the curve between 135 and 180, a little below the mean to one standard deviation above it.</p>` +
+          ncurve(Object.assign({}, SP, { a: 135, b: 180, ticks: [90, 135, 150, 180, 210], zLabels: false, area: "?", alt: "Normal curve with the area between £135 and £180 shaded" })) },
         { k: "Write the formula", b: String.raw`<p>Standardise both ends; the area between is the area to the left of the upper end minus the area to the left of the lower end.</p>
           \[ P(a < X < b) = P(Z < z_b) - P(Z < z_a), \qquad z = \frac{x - \mu}{\sigma} \]` },
         { k: "Substitute", b: String.raw`\[ z_a = \frac{135 - 150}{30} = -0.5 \qquad z_b = \frac{180 - 150}{30} = 1 \]` },
-        { k: "Compute", b: String.raw`\[ P(135 < X < 180) = P(Z < 1) - P(Z < -0.5) = 0.8413 - 0.3085 = 0.5328 \]<span class="answer-line">About 53% of households spend between £135 and £180 a month.</span>
+        { k: "Compute", b: String.raw`\[ P(135 < X < 180) = P(Z < 1) - P(Z < -0.5) = 0.8413 - 0.3085 = 0.5328 \]<span class="answer-line">About 53% of households spend between £135 and £180 a month.</span>` +
+          nrow([Object.assign({}, SP, { b: 180, ticks: [180], area: "0.8413", areaAt: 140, alt: "Area to the left of z = 1: 0.8413" }),
+                Object.assign({}, SP, { b: 135, ticks: [135], area: "0.3085", areaAt: 100, areaY: 52, alt: "Area to the left of z = −0.5: 0.3085" }),
+                Object.assign({}, SP, { a: 135, b: 180, ticks: [135, 180], area: "0.5328", alt: "Area between z = −0.5 and z = 1: 0.5328" })], ["−", "="]) + String.raw`
           <p>In R: <code>pnorm(180, 150, 30) - pnorm(135, 150, 30)</code>.</p>` },
       ],
       sim: { intro: "Each draw is one household from N(150, 30²). Orange squares are households spending between £135 and £180.",
@@ -156,10 +210,14 @@ window.SEMINAR = {
     { type: "solution", label: "2(c)", title: "Who qualifies for support?",
       question: "The city wants to offer support to the 10% of households with the highest spending. Above what level of spending would a household qualify?",
       steps: [
-        { k: "What is different this time", b: String.raw`<p>Now we know the <b>probability</b> and want the <b>value</b>: the spending \(x\) with 10% of households above it,</p>\[ P(X > x) = 0.10 \quad\Longleftrightarrow\quad P(X < x) = 0.90 \]` },
+        { k: "What is different this time", b: String.raw`<p>Now we know the <b>probability</b> and want the <b>value</b>: the spending \(x\) with 10% of households above it,</p>\[ P(X > x) = 0.10 \quad\Longleftrightarrow\quad P(X < x) = 0.90 \]` +
+          ncurve(Object.assign({}, SP, { a: 188.45, ticks: [150], zLabels: false, area: "0.10", areaAt: 232, areaY: 138, dashed: [188.45],
+            note: { at: 188.45, y: 40, anchor: "start", text: "  x = ?" }, alt: "Normal curve with the top 10% shaded to the right of an unknown cut-off" })) },
         { k: "Find z from the table", b: String.raw`<p>Look inside the table for 0.90: \(P(Z < 1.28) = 0.8997\), the closest entry.</p>\[ z = 1.28 \]` },
         { k: "Write the formula: reverse the standardisation", b: String.raw`\[ z = \frac{x - \mu}{\sigma} \quad\Longrightarrow\quad x = \mu + z\,\sigma \]` },
-        { k: "Substitute and compute", b: String.raw`\[ x = 150 + 1.28 \times 30 = 150 + 38.40 = 188.40 \]<span class="answer-line">Households spending more than about £188 a month qualify.</span>
+        { k: "Substitute and compute", b: String.raw`\[ x = 150 + 1.28 \times 30 = 150 + 38.40 = 188.40 \]<span class="answer-line">Households spending more than about £188 a month qualify.</span>` +
+          ncurve(Object.assign({}, SP, { a: 188.4, ticks: [150, 188.4], area: "0.10", areaAt: 232, areaY: 122, dashed: [188.4],
+            note: { at: 120, y: 120, text: "0.90" }, alt: "The top 10% lie above £188.40, z = 1.28" })) + String.raw`
           <p>R uses the exact \(z = 1.2816\): <code>qnorm(0.90, 150, 30)</code> gives £188.45.</p>` },
       ],
       sim: { intro: "Each draw is one household from N(150, 30²). Orange squares are households above the cut-off of £188.45. The share should settle at 10%.",
@@ -198,7 +256,9 @@ window.SEMINAR = {
         { k: "Write the formula", b: String.raw`\[ \mathrm{SE}(\bar{x}) = \frac{\sigma}{\sqrt{n}} \]` },
         { k: "Substitute", b: String.raw`\[ \mathrm{SE}(\bar{x}) = \frac{300}{\sqrt{36}} = \frac{300}{6} \]` },
         { k: "Compute and interpret", b: String.raw`\[ \mathrm{SE}(\bar{x}) = 50 \]<span class="answer-line">The mean rent of 36 flats is typically about £50 away from £1,200, although a single flat is typically £300 away.</span>
-          <p>By the central limit theorem, about 68% of samples of 36 flats have a mean within one standard error (£1,150 to £1,250).</p>` },
+          <p>By the central limit theorem, about 68% of samples of 36 flats have a mean within one standard error (£1,150 to £1,250).</p>` +
+          ncurve(Object.assign({}, RENT, { a: 1150, b: 1250, ticks: [1100, 1150, 1200, 1250, 1300], zLabels: false, area: "68%",
+            title: "Sampling distribution of the mean rent of 36 flats", alt: "Normal curve for the mean rent, centred on £1,200 with standard error £50; the area between £1,150 and £1,250 is shaded, 68%" })) + String.raw`` },
       ],
       sim: { intro: "Each draw is a whole sample: 36 flats, each rent drawn from a population with mean £1,200 and standard deviation £300. Orange squares are samples whose mean rent is within £50 (one standard error) of £1,200. The share settles near 68%.",
         target: 0.6827, targetLabel: "Normal: within ±1 SE", xLabel: "Samples of 36 flats (log scale)", yLabel: "Share of means within £50",
