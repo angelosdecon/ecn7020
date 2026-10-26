@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Problem Set 4 Solutions — ECN7020, SOAS Economics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="stylesheet" href="../assets/seminar.css?v=4">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+</head>
+<body>
+<noscript>This page needs JavaScript.</noscript>
+
+<script>
+// ---------------------------------------------------------------------------
+// Problem Set 4 solutions: content only. The layout, the step-by-step reveal,
+// the simulations and the R engine are in ../assets/seminar.js.
+// Maths is written in TeX between \( \) or \[ \] and typeset by KaTeX.
+// ---------------------------------------------------------------------------
+
+// One random draw for each simulation.
+function drawNormal(mu, sd) {     // Box–Muller: one draw from N(mu, sd^2)
+  const u = 1 - Math.random(), v = Math.random();
+  return mu + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function drawRentMean() {         // Question 1: mean rent of 36 flats; rents with mean £1,200, SD £300 (drawn from a normal)
+  let s = 0;
+  for (let i = 0; i < 36; i++) s += drawNormal(1200, 300);
+  return s / 36;
+}
+function drawShare(n, p) {        // Questions 2 and 3: share of "yes" among n people, each "yes" with probability p
+  let x = 0;
+  for (let i = 0; i < n; i++) if (Math.random() < p) x += 1;
+  return x / n;
+}
+
+// Small sketch of a normal curve with the area we want shaded (inline SVG), as on the Problem Set 3 page.
+// o: { mu, sd, a, b: limits of the shaded area (null = minus/plus infinity), ticks: [x values],
+//      zLabels: true, area: text shown in the shaded area, unit, title, w, h, fmt: function for tick labels }
+function ncurve(o) {
+  const W = o.w || 520, H = o.h || 190, L = 14, R = 14, T = o.title ? 26 : 10, B = o.zLabels === false ? 30 : 46;
+  const mu = o.mu, sd = o.sd, lo = mu - 3.6 * sd, hi = mu + 3.6 * sd;
+  const X = (x) => L + (x - lo) / (hi - lo) * (W - L - R);
+  const pdf = (x) => Math.exp(-0.5 * ((x - mu) / sd) ** 2);
+  const Y = (v) => T + (1 - v) * (H - T - B);
+  const base = Y(0);
+  let curve = "", n = 160;
+  for (let i = 0; i <= n; i++) { const x = lo + (hi - lo) * i / n; curve += (i ? "L" : "M") + X(x).toFixed(1) + " " + Y(pdf(x)).toFixed(1); }
+  const a = o.a === null || o.a === undefined ? lo : o.a, b = o.b === null || o.b === undefined ? hi : o.b;
+  let area = "M" + X(a).toFixed(1) + " " + base;
+  for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n; area += "L" + X(x).toFixed(1) + " " + Y(pdf(x)).toFixed(1); }
+  area += "L" + X(b).toFixed(1) + " " + base + "Z";
+  const u = o.unit || "", fmt = o.fmt || ((x) => u + x.toLocaleString("en-GB"));
+  let g = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (o.alt || "Normal curve with the area we want shaded") +
+    '" style="width:100%;max-width:' + W + 'px;display:block;margin:10px 0;background:#FFFFFF;border-radius:8px">';
+  if (o.title) g += '<text x="' + (W / 2) + '" y="17" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#1A1A1A">' + o.title + '</text>';
+  if (!o.noShade) g += '<path d="' + area + '" fill="#E36533" fill-opacity="0.55"/>';
+  g += '<path d="' + curve + '" fill="none" stroke="#2A5A88" stroke-width="2.2"/>';
+  g += '<line x1="' + L + '" y1="' + base + '" x2="' + (W - R) + '" y2="' + base + '" stroke="#1A1A1A" stroke-width="1"/>';
+  (o.ticks || []).forEach((x) => {
+    const z = (x - mu) / sd, zt = Math.abs(z - Math.round(z)) < 1e-9 ? String(Math.round(z)).replace("-", "−") : z.toFixed(2).replace(/0$/, "").replace("-", "−");
+    g += '<line x1="' + X(x) + '" y1="' + base + '" x2="' + X(x) + '" y2="' + (base + 5) + '" stroke="#1A1A1A"/>';
+    g += '<text x="' + X(x) + '" y="' + (base + 18) + '" text-anchor="middle" font-family="Arial" font-size="12" fill="#1A1A1A">' + fmt(x) + '</text>';
+    if (o.zLabels !== false) g += '<text x="' + X(x) + '" y="' + (base + 34) + '" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#E36533">z = ' + zt + '</text>';
+  });
+  if (o.dashed) o.dashed.forEach((x) => { g += '<line x1="' + X(x) + '" y1="' + Y(pdf(x)) + '" x2="' + X(x) + '" y2="' + base + '" stroke="#1A1A1A" stroke-dasharray="4 3"/>'; });
+  if (o.area) {
+    const ax = o.areaAt !== undefined ? o.areaAt : (Math.max(a, lo) + Math.min(b, hi)) / 2;
+    const ay = o.areaY !== undefined ? o.areaY : (base + Y(pdf(ax))) / 2 + 6;
+    g += '<text x="' + X(ax) + '" y="' + ay + '" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#1A1A1A">' + o.area + '</text>';
+  }
+  if (o.note) g += '<text x="' + X(o.note.at) + '" y="' + (o.note.y || T + 14) + '" text-anchor="' + (o.note.anchor || "middle") + '" font-family="Arial" font-size="12" fill="#555555">' + o.note.text + '</text>';
+  return g + "</svg>";
+}
+// Two small curves side by side.
+function nrow(items, sep) {
+  return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">' +
+    items.map((it, i) => (i ? '<span style="font-size:26px;font-weight:bold;color:#1A1A1A">' + sep[i - 1] + '</span>' : '') +
+      '<div style="flex:1;min-width:190px">' + ncurve(Object.assign({ w: 300, h: 150 }, it)) + '</div>').join("") + "</div>";
+}
+const RENT = { mu: 1200, sd: 50, unit: "£" };              // Question 1: mean rent of 36 flats, SE = £50
+const ONE = { mu: 1200, sd: 300, unit: "£" };              // Question 1(e): one flat, SD = £300
+const pct = (x) => (Math.round(x * 1000) / 10).toLocaleString("en-GB") + "%";
+const PROP = { mu: 0.25, sd: 0.02165, fmt: pct };          // Question 2: p-hat with SE = 0.02165
+
+window.SEMINAR = {
+  id: "ps4",
+  eyebrow: "Week 4 · Problem Set 4 · Solutions",
+  title: "Estimation and Standard Errors",
+  lead: "Worked solutions for the Week 5 seminar. Each part shows the question, then a solution box that reveals the answer one step at a time: define what we know, write the formula, substitute, compute, and interpret.",
+  note: "<b>How it works.</b> Click <b>Show step 1</b> in a solution box, then <b>Next step</b> for each step. You can also click a box and use <b>→</b> (or <b>Page Down</b> on a presentation clicker) to go forward and <b>←</b> to go back. <b>Presentation mode</b> makes everything larger for the projector. Under several answers, <b>Check it by simulation</b> draws samples of flats, surveys or polls at random and shows the running share settling on the answer: watch how many samples it takes. The R question at the end runs real R code in your browser, with nothing to install.",
+  footer: "ECN7020 · Problem Set 4 · Solutions · discussed in the Week 5 seminar",
+  readyText: "R is ready. Click Run on the R steps at the end of the page.",
+  progress: false,
+  packages: [],
+  setup: "invisible(NULL)",
+  items: [
+
+    // ================================================================== Question 1
+    { type: "section", eyebrow: "Question 1", title: "Probabilities for a Sample Mean",
+      text: "<p>Monthly rents for one-bedroom flats in a city have mean £1,200 and standard deviation £300 (as in Problem Set 3, Question 4). Take a random sample of 36 flats.</p>" },
+
+    { type: "solution", label: "1(a)", title: "The sampling distribution of the mean",
+      question: "Describe the sampling distribution of the sample mean: its shape, its mean and its standard deviation.",
+      steps: [
+        { k: "Define what we know", b: String.raw`<p>Population of rents: \(\mu = 1{,}200\), \(\sigma = 300\). Sample size \(n = 36\).</p><p>\(\bar{x}\) = the mean rent of the 36 flats. It changes from sample to sample, so it has a distribution of its own: the <b>sampling distribution</b>.</p>` },
+        { k: "Write the results from Week 3", b: String.raw`<p>Centre, spread and shape of the sampling distribution of \(\bar{x}\):</p>\[ E(\bar{x}) = \mu, \qquad \mathrm{SE}(\bar{x}) = \frac{\sigma}{\sqrt{n}}, \qquad \bar{x} \approx N\!\left(\mu,\ \frac{\sigma^2}{n}\right) \]<p>The shape comes from the central limit theorem: with \(n = 36\) the mean is close to normal whatever the shape of the rents.</p>` },
+        { k: "Substitute", b: String.raw`\[ E(\bar{x}) = 1{,}200, \qquad \mathrm{SE}(\bar{x}) = \frac{300}{\sqrt{36}} = \frac{300}{6} = 50 \]` },
+        { k: "State the answer", b: String.raw`\[ \bar{x} \approx N(1{,}200,\ 50^2) \]<span class="answer-line">The sample mean is approximately normal, centred on £1,200, with standard deviation (standard error) £50.</span>` +
+          ncurve(Object.assign({}, RENT, { noShade: true, ticks: [1100, 1150, 1200, 1250, 1300], zLabels: false,
+            title: "Sampling distribution of the mean rent of 36 flats", alt: "Normal curve centred on £1,200 with standard error £50" })) },
+      ] },
+
+    { type: "solution", label: "1(b)", title: "A sample mean above £1,300",
+      question: "Find the probability that the sample mean is above £1,300.",
+      steps: [
+        { k: "Define the event and what we know", b: String.raw`<p>From 1(a), \(\bar{x} \approx N(1{,}200,\ 50^2)\). We want \(P(\bar{x} > 1{,}300)\): the area to the <b>right</b> of £1,300.</p>` +
+          ncurve(Object.assign({}, RENT, { a: 1300, ticks: [1100, 1200, 1300], zLabels: false, area: "?", areaAt: 1330, areaY: 140, alt: "Sampling distribution with the area above £1,300 shaded" })) },
+        { k: "Write the formula", b: String.raw`<p>Standardise with the <b>standard error</b>, not the standard deviation of one rent:</p>\[ z = \frac{\bar{x} - \mu}{\sigma / \sqrt{n}}, \qquad P(\bar{x} > x) = P(Z > z) \]` },
+        { k: "Substitute", b: String.raw`\[ z = \frac{1{,}300 - 1{,}200}{50} = \frac{100}{50} = 2 \]` },
+        { k: "Read the probability", b: String.raw`\[ P(\bar{x} > 1{,}300) = P(Z > 2) = 1 - 0.9772 = 0.0228 \]<span class="answer-line">Only about 2% of samples of 36 flats have a mean rent above £1,300.</span>` +
+          ncurve(Object.assign({}, RENT, { a: 1300, ticks: [1100, 1200, 1300], area: "0.0228", areaAt: 1335, areaY: 128, dashed: [1300], alt: "The area above £1,300, z = 2, is 0.0228" })) +
+          String.raw`<p>In R: <code>1 - pnorm(1300, 1200, 50)</code>.</p>` },
+      ],
+      sim: { intro: "Each draw is a whole sample of 36 flats, each rent drawn from a population with mean £1,200 and standard deviation £300. Orange squares are samples whose mean rent is above £1,300.",
+        target: 0.0228, targetLabel: "Exact P(x̄ > 1,300)", xLabel: "Samples of 36 flats (log scale)", yLabel: "Share with mean above £1,300",
+        maxDraws: 20000, tol: 0.005, yRange: [0, 0.2], yTicks: [0, 0.05, 0.1, 0.15, 0.2], legend: { hit: "Mean above £1,300", miss: "£1,300 or less" },
+        draw: () => ({ hit: drawRentMean() > 1300 }) } },
+
+    { type: "solution", label: "1(c)", title: "A sample mean below £1,150",
+      question: "Find the probability that the sample mean is below £1,150.",
+      steps: [
+        { k: "Define the event", b: String.raw`<p>We want \(P(\bar{x} < 1{,}150)\): the area to the <b>left</b> of £1,150, one standard error below the mean.</p>` +
+          ncurve(Object.assign({}, RENT, { b: 1150, ticks: [1100, 1150, 1200, 1300], zLabels: false, area: "?", areaAt: 1120, areaY: 132, alt: "Sampling distribution with the area below £1,150 shaded" })) },
+        { k: "Write the formula", b: String.raw`\[ z = \frac{\bar{x} - \mu}{\sigma / \sqrt{n}}, \qquad P(\bar{x} < x) = P(Z < z) \]` },
+        { k: "Substitute", b: String.raw`\[ z = \frac{1{,}150 - 1{,}200}{50} = \frac{-50}{50} = -1 \]` },
+        { k: "Read the probability", b: String.raw`\[ P(\bar{x} < 1{,}150) = P(Z < -1) = 1 - 0.8413 = 0.1587 \]<span class="answer-line">About 16% of samples of 36 flats have a mean rent below £1,150.</span>` +
+          ncurve(Object.assign({}, RENT, { b: 1150, ticks: [1100, 1150, 1200, 1300], area: "0.1587", areaAt: 1115, areaY: 128, dashed: [1150], alt: "The area below £1,150, z = −1, is 0.1587" })) +
+          String.raw`<p>In R: <code>pnorm(1150, 1200, 50)</code>.</p>` },
+      ] },
+
+    { type: "solution", label: "1(d)", title: "Where 95% of sample means lie",
+      question: "Between which two values do 95% of sample means lie?",
+      steps: [
+        { k: "What we want", b: String.raw`<p>The two values, equally far either side of \(\mu\), with 95% of the area of the sampling distribution between them: 2.5% in each tail.</p>` },
+        { k: "Write the formula", b: String.raw`<p>95% of a normal distribution lies within 1.96 standard deviations of its mean (the table gives \(P(Z < 1.96) = 0.975\)):</p>\[ \mu \pm 1.96 \times \frac{\sigma}{\sqrt{n}} \]` },
+        { k: "Substitute", b: String.raw`\[ 1{,}200 \pm 1.96 \times 50 = 1{,}200 \pm 98 \]` },
+        { k: "Compute and interpret", b: String.raw`\[ 1{,}102 \quad\text{to}\quad 1{,}298 \]<span class="answer-line">95% of samples of 36 flats have a mean rent between £1,102 and £1,298.</span>` +
+          ncurve(Object.assign({}, RENT, { a: 1102, b: 1298, ticks: [1102, 1200, 1298], area: "95%", alt: "The central 95% of the sampling distribution, between £1,102 and £1,298" })) +
+          String.raw`<p>Next week we turn this round: from one sample mean, a range for \(\mu\).</p>` },
+      ] },
+
+    { type: "solution", label: "1(e)", title: "One flat above £1,300",
+      question: "Suppose, for this part only, that individual rents are normally distributed. Find the probability that <i>one</i> randomly chosen flat has a rent above £1,300. Why is it so different from your answer to (b)?",
+      steps: [
+        { k: "Define the variable and what we know", b: String.raw`<p>\(X\) = the rent of one flat. For this part \(X \sim N(1{,}200,\ 300^2)\): the spread is \(\sigma = 300\), not the standard error.</p><p>We want \(P(X > 1{,}300)\).</p>` },
+        { k: "Write the formula", b: String.raw`\[ z = \frac{x - \mu}{\sigma}, \qquad P(X > x) = P(Z > z) \]` },
+        { k: "Substitute and read the probability", b: String.raw`\[ z = \frac{1{,}300 - 1{,}200}{300} = 0.33 \]\[ P(X > 1{,}300) = P(Z > 0.33) = 1 - 0.6293 = 0.3707 \]<span class="answer-line">More than one flat in three rents for over £1,300.</span><p>R uses the exact \(z = 0.333\): <code>1 - pnorm(1300, 1200, 300)</code> gives 0.3694.</p>` },
+        { k: "Why so different from (b)?", b: String.raw`<p>One flat and the mean of 36 flats have the same centre, but very different spreads: £300 against £50. In a sample, high and low rents cancel out, so the mean varies much less than one rent.</p>` +
+          nrow([Object.assign({}, ONE, { a: 1300, ticks: [1300], area: "0.37", areaAt: 1560, areaY: 96, title: "One flat: SD £300", alt: "One rent, SD £300: area above £1,300 is 0.37" }),
+                Object.assign({}, RENT, { a: 1300, ticks: [1300], area: "0.02", areaAt: 1330, areaY: 70, title: "Mean of 36: SE £50", alt: "Mean of 36 rents, SE £50: area above £1,300 is 0.02" })], ["vs"]) +
+          `<span class="answer-line">£1,300 is only a third of a standard deviation above the mean for one flat, but two standard errors above it for the mean of 36.</span>` },
+      ] },
+
+    { type: "solution", label: "1(f)", title: "What if rents are skewed?",
+      question: "In fact rents are skewed to the right. Does that affect your answer to (b)? To (e)? Explain.",
+      steps: [
+        { k: "The criterion", b: "<p>The central limit theorem is about the <b>mean</b> of a large sample, not about individual values. So ask, for each part: is it about a mean or about one flat?</p>" },
+        { k: "Part (b): a mean of 36", b: "<span class='answer-line'>(b) is still approximately right.</span><p>With n = 36 the sample mean is close to normal even though rents are skewed, so 0.0228 remains a good approximation.</p>" },
+        { k: "Part (e): one flat", b: "<span class='answer-line'>(e) is not reliable.</span><p>It is about a single rent, so it used the normal shape of the population directly. With a right skew, most flats rent for a bit less than the mean and a few for much more, so the true share above £1,300 will differ from 0.37.</p>" },
+      ] },
+
+    // ================================================================== Question 2
+    { type: "section", eyebrow: "Question 2", title: "The Sampling Distribution of a Proportion",
+      text: "<p>In a country, 25% of workers are in informal employment. A labour force survey interviews a random sample of 400 workers.</p>" },
+
+    { type: "solution", label: "2(a)", title: "Is the sample large enough?",
+      question: "Check that the sample is large enough for the normal approximation.",
+      steps: [
+        { k: "Define what we know", b: String.raw`<p>\(p = 0.25\) (the population share in informal employment), so \(1 - p = 0.75\); \(n = 400\).</p><p>\(\hat{p}\) = the share of the 400 sampled workers in informal employment.</p>` },
+        { k: "The rule of thumb", b: String.raw`<p>The normal approximation is fine when we expect at least 10 “successes” and 10 “failures”:</p>\[ np \ge 10 \quad\text{and}\quad n(1 - p) \ge 10 \]` },
+        { k: "Substitute and check", b: String.raw`\[ np = 400 \times 0.25 = 100, \qquad n(1-p) = 400 \times 0.75 = 300 \]<span class="answer-line">Both are far above 10, so the normal approximation is fine.</span>` },
+      ] },
+
+    { type: "solution", label: "2(b)", title: "The standard error of the proportion",
+      question: "Find the standard error of the sample proportion.",
+      steps: [
+        { k: "Write the formula", b: String.raw`<p>A proportion is the mean of 0s and 1s, with population variance \(p(1-p)\), so (lecture slides 7 and 8):</p>\[ \mathrm{SE}(\hat{p}) = \sqrt{\frac{p(1-p)}{n}} \]` },
+        { k: "Substitute", b: String.raw`\[ \mathrm{SE}(\hat{p}) = \sqrt{\frac{0.25 \times 0.75}{400}} = \sqrt{\frac{0.1875}{400}} = \sqrt{0.000469} \]` },
+        { k: "Compute and interpret", b: String.raw`\[ \mathrm{SE}(\hat{p}) = 0.02165 \approx 0.0217 \]<span class="answer-line">A survey of 400 workers typically misses the true 25% by about 2.2 percentage points.</span>` },
+      ] },
+
+    { type: "solution", label: "2(c)", title: "More than 28% in the sample",
+      question: "Find the probability that more than 28% of the workers in the sample are in informal employment.",
+      steps: [
+        { k: "Define the event and what we know", b: String.raw`\[ \hat{p} \approx N\!\left(p,\ \frac{p(1-p)}{n}\right) = N(0.25,\ 0.02165^2) \]<p>We want \(P(\hat{p} > 0.28)\): the area to the right of 28%.</p>` +
+          ncurve(Object.assign({}, PROP, { a: 0.28, ticks: [0.2067, 0.25, 0.28], zLabels: false, area: "?", areaAt: 0.297, areaY: 136, alt: "Sampling distribution of the proportion with the area above 28% shaded" })) },
+        { k: "Write the formula", b: String.raw`\[ z = \frac{\hat{p} - p}{\mathrm{SE}(\hat{p})}, \qquad P(\hat{p} > x) = P(Z > z) \]` },
+        { k: "Substitute", b: String.raw`\[ z = \frac{0.28 - 0.25}{0.02165} = \frac{0.03}{0.02165} = 1.39 \]<p>Use the unrounded standard error here, 0.02165: with 0.0217 the division gives 1.38.</p>` },
+        { k: "Read the probability", b: String.raw`\[ P(\hat{p} > 0.28) = P(Z > 1.39) = 1 - 0.9177 = 0.0823 \]<span class="answer-line">About 8% of surveys of 400 workers would show more than 28% in informal employment.</span>` +
+          ncurve(Object.assign({}, PROP, { a: 0.28, ticks: [0.25, 0.28], area: "0.0823", areaAt: 0.30, areaY: 126, dashed: [0.28], alt: "The area above 28%, z = 1.39, is 0.0823" })) +
+          String.raw`<p>The simulation below settles a little lower, near 0.076: see Question 5(c) for why.</p>` },
+      ],
+      sim: { intro: "Each draw is a whole survey: 400 workers, each in informal employment with probability 0.25. Orange squares are surveys with more than 28% informal. The share settles near the exact binomial answer, 0.076, a little below the normal approximation.",
+        target: 0.0758, targetLabel: "Exact (binomial) P(p̂ > 0.28)", xLabel: "Surveys of 400 workers (log scale)", yLabel: "Share of surveys above 28%",
+        maxDraws: 20000, tol: 0.005, yRange: [0, 0.3], yTicks: [0, 0.1, 0.2, 0.3], legend: { hit: "More than 28%", miss: "28% or less" },
+        draw: () => ({ hit: drawShare(400, 0.25) > 0.28 }) } },
+
+    { type: "solution", label: "2(d)", title: "Where 95% of sample proportions lie",
+      question: "Between which two values do 95% of sample proportions lie?",
+      steps: [
+        { k: "Write the formula", b: String.raw`\[ p \pm 1.96 \times \mathrm{SE}(\hat{p}) \]` },
+        { k: "Substitute", b: String.raw`\[ 0.25 \pm 1.96 \times 0.0217 = 0.25 \pm 0.042 \]` },
+        { k: "Compute and interpret", b: String.raw`\[ 0.208 \quad\text{to}\quad 0.292 \]<span class="answer-line">95% of surveys of 400 workers find between 20.8% and 29.2% in informal employment.</span>` +
+          ncurve(Object.assign({}, PROP, { a: 0.2075, b: 0.2925, ticks: [0.2075, 0.25, 0.2925], area: "95%", alt: "The central 95% of the sampling distribution of the proportion, 20.8% to 29.2%" })) },
+      ] },
+
+    // ================================================================== Question 3
+    { type: "section", eyebrow: "Question 3", title: "Opinion Polls",
+      text: "<p>The 95% margin of error of a poll is 1.96 standard errors. With no other information we use \\(p = 0.5\\), where \\(p(1-p)\\) is largest, so the margin is never understated.</p>" },
+
+    { type: "solution", label: "3(a)", title: "A poll of 800",
+      question: "A polling company interviews a random sample of 800 adults. What is its margin of error at the 95% level? (Use \\(p = 0.5\\).)",
+      steps: [
+        { k: "Define what we know", b: String.raw`<p>\(n = 800\), \(p = 0.5\), so \(p(1-p) = 0.25\).</p>` },
+        { k: "Write the formula", b: String.raw`\[ \text{Margin of error} = 1.96 \times \mathrm{SE}(\hat{p}) = 1.96 \times \sqrt{\frac{p(1-p)}{n}} \]` },
+        { k: "Substitute", b: String.raw`\[ 1.96 \times \sqrt{\frac{0.25}{800}} = 1.96 \times \sqrt{0.0003125} = 1.96 \times 0.0177 \]` },
+        { k: "Compute and interpret", b: String.raw`\[ 0.0346 \]<span class="answer-line">The margin of error is about ±3.5 percentage points: 95% of such polls land within 3.5 points of the truth.</span>` },
+      ],
+      sim: { intro: "Each draw is a whole poll of 800 adults, with true support exactly 50%. Orange squares are polls within 3.5 points of 50%. The share settles near 95%.",
+        target: 0.95, targetLabel: "95% of polls", xLabel: "Polls of 800 (log scale)", yLabel: "Share within 3.5 points",
+        maxDraws: 10000, tol: 0.01, yRange: [0.6, 1], yTicks: [0.6, 0.7, 0.8, 0.9, 1], legend: { hit: "Within 3.5 points", miss: "Further away" },
+        draw: () => ({ hit: Math.abs(drawShare(800, 0.5) - 0.5) <= 0.0346 }) } },
+
+    { type: "solution", label: "3(b)", title: "How many for ±2.5 points?",
+      question: "How many adults would it need to interview for a margin of error of 2.5 percentage points?",
+      steps: [
+        { k: "What we want", b: String.raw`<p>The sample size \(n\) that makes the margin of error equal to 0.025, with \(p = 0.5\).</p>` },
+        { k: "Write the formula, solved for n", b: String.raw`\[ 1.96 \times \sqrt{\frac{0.25}{n}} = 0.025 \quad\Longrightarrow\quad n = 0.25 \times \left(\frac{1.96}{0.025}\right)^{2} \]` },
+        { k: "Substitute and compute", b: String.raw`\[ n = 0.25 \times 78.4^2 = 0.25 \times 6{,}146.6 = 1{,}536.6 \]` },
+        { k: "Round up", b: `<span class="answer-line">It needs 1,537 adults.</span><p>Always round <b>up</b>: 1,536 would give a margin slightly above 2.5 points. Cutting the margin from 3.5 to 2.5 points needs almost twice the sample.</p>` },
+      ] },
+
+    { type: "solution", label: "3(c)", title: "50,000 readers online",
+      question: "A newspaper runs a poll on its website. 50,000 readers respond, and the newspaper reports a margin of error of 0.4 percentage points. Is the arithmetic right? Should we trust the result to within 0.4 points? Explain.",
+      steps: [
+        { k: "Check the arithmetic", b: String.raw`\[ 1.96 \times \sqrt{\frac{0.25}{50{,}000}} = 1.96 \times 0.00224 = 0.0044 \]<span class="answer-line">The arithmetic is right: about ±0.4 points.</span>` },
+        { k: "What the formula assumes", b: "<p>The margin of error measures <b>sampling error only</b>: the luck of the draw in a <b>random</b> sample. It says nothing about bias.</p>" },
+        { k: "Is this a random sample?", b: "<p>No. The respondents are readers of one newspaper who chose to answer: a self-selected group, not a random sample of adults.</p>" },
+        { k: "Conclude", b: "<span class='answer-line'>We should not trust it to within 0.4 points. A large sample measures the bias very precisely; it does not remove it. This is the 1936 Literary Digest poll again.</span>" },
+      ] },
+
+    // ================================================================== Question 4
+    { type: "section", eyebrow: "Question 4", title: "Estimators",
+      text: "<p>Answer each part in one or two sentences.</p>" },
+
+    { type: "solution", label: "4(a)", title: "Estimator or estimate?",
+      question: "What is the difference between an estimator and an estimate?",
+      steps: [
+        { k: "Estimator: the rule", b: String.raw`<p>A formula applied to whatever sample we draw, such as \(\bar{x} = \sum x_i / n\). Because the sample is random, the estimator is a <b>random variable</b>, with its own sampling distribution.</p>` },
+        { k: "Estimate: the number", b: String.raw`<p>What the rule gives for the sample we actually have, for example \(\bar{x} = 113.4\) for the 20 workers in the lecture. Once the data are in, it is a fixed number.</p>` },
+        { k: "In one sentence", b: "<span class='answer-line'>The estimator is the rule; the estimate is the number it produces for our sample.</span>" },
+      ] },
+
+    { type: "solution", label: "4(b)", title: "Unbiased and consistent",
+      question: "What does it mean to say that an estimator is unbiased? That it is consistent?",
+      steps: [
+        { k: "Unbiased", b: String.raw`\[ E(\hat{\theta}) = \theta \]<p>Right on average: over all possible samples, the estimates centre on the true parameter. Its bias, \(E(\hat{\theta}) - \theta\), is zero.</p>` },
+        { k: "Consistent", b: String.raw`\[ P\big(|\hat{\theta}_n - \theta| > \varepsilon\big) \to 0 \ \text{ as } n \to \infty, \ \text{ for every } \varepsilon > 0 \]<p>As the sample grows, the estimator gets closer and closer to the true value.</p>` },
+        { k: "An example", b: String.raw`<span class="answer-line">The sample mean is both: \(E(\bar{x}) = \mu\), and its standard error \(\sigma / \sqrt{n}\) shrinks to zero as \(n\) grows.</span><p>The two properties are different: a single observation \(X_1\) is unbiased but not consistent, and dividing the sample variance by \(n\) is biased but consistent.</p>` },
+      ] },
+
+    // ================================================================== R question
+    { type: "section", eyebrow: "Questions using RStudio", title: "Question 5 in R",
+      text: "<p>Bring your laptop to the seminar. The lecture slide “Simulating 10,000 Opinion Polls” has the code for the poll simulation. R takes a minute to start the first time; the status at the top of the page turns green when it is ready. Later steps use objects created in earlier steps, as in a script, so run the steps in order.</p>" },
+
+    { type: "r", title: "5(a). Simulate 10,000 surveys", plot: { width: 680, height: 380 },
+      desc: "Simulate 10,000 surveys like the one in Question 2: <code>phat &lt;- rbinom(10000, size = 400, prob = 0.25) / 400</code>.",
+      h1: "Each survey interviews 400 workers, each in informal employment with probability 0.25. rbinom() gives the number of informal workers in each survey; dividing by 400 turns it into a share. Fix the random numbers first so your results can be repeated.",
+      h2: "<code>set.seed(2026)</code>, then the line from the question. Look at the result with <code>head()</code> and <code>hist()</code>.",
+      h3: `set.seed(2026)                    # so that we all get the same draws
+phat <- rbinom(10000, size = 400, prob = 0.25) / 400
+head(phat)                        # the first six surveys
+hist(phat, breaks = 40, col = "#E1EBF5",
+     main = "10,000 surveys of 400 workers", xlab = "Share in informal employment")
+abline(v = 0.28, col = "#E36533", lwd = 2, lty = 2)`,
+      h3note: "With this seed the first six surveys find 25.0%, 21.25%, 25.0%, 24.5%, 22.25% and 23.25%. The histogram is bell-shaped and centred on 0.25 (the mean of the 10,000 shares is 0.2498). The object <code>phat</code> is used in (b) and (c).",
+      code: "# Simulate 10,000 surveys of 400 workers\n" },
+
+    { type: "r", title: "5(b). The spread of the simulated shares",
+      desc: "Find <code>sd(phat)</code> and compare it with your answer to Question 2(b).",
+      h1: "The standard deviation of the 10,000 simulated shares is the standard error, found by simulation.",
+      h2: "<code>sd(phat)</code>, and the formula <code>sqrt(0.25 * 0.75 / 400)</code>.",
+      h3: `sd(phat)                          # simulated standard error
+sqrt(0.25 * 0.75 / 400)           # the formula from Question 2(b)`,
+      h3note: "The simulation gives 0.02164, against 0.02165 from the formula: the same to four decimal places.",
+      code: "# Compare the spread of the simulated shares with Question 2(b)\n" },
+
+    { type: "r", title: "5(c). More than 28%",
+      desc: "Find <code>mean(phat &gt; 0.28)</code> and compare it with your answer to Question 2(c).",
+      h1: "<code>phat &gt; 0.28</code> is TRUE or FALSE for each survey; its mean is the share of surveys above 28%.",
+      h2: "Compare with the normal approximation, <code>1 - pnorm(0.28, 0.25, sqrt(0.25 * 0.75 / 400))</code>, and the exact binomial answer, <code>1 - pbinom(112, 400, 0.25)</code>.",
+      h3: `mean(phat > 0.28)                                  # simulated share above 28%
+1 - pnorm(0.28, 0.25, sqrt(0.25 * 0.75 / 400))     # normal approximation, Question 2(c)
+1 - pbinom(112, 400, 0.25)                         # exact: more than 112 of the 400`,
+      h3note: "The simulation gives 0.0741, the normal approximation 0.0829 and the exact binomial answer 0.0758. The simulation agrees with the exact answer; the normal approximation is a little too high. The written step below asks why.",
+      code: "# Share of simulated surveys above 28%\n" },
+
+    { type: "write", title: "5(c). Why is the simulation below 0.082?",
+      desc: "Explain in one or two sentences why the simulated share in 5(c) is a little below the 0.082 from Question 2(c).",
+      h1: "How many workers out of 400 is 28%? Can a survey find 28.1%?",
+      h2: "<ul><li>The sample share can only take the values 0/400, 1/400, …, 400/400.</li><li>“More than 28%” means 113 or more of the 400.</li><li>The normal curve is smooth; the binomial jumps.</li></ul>",
+      h3: "<p>The share in a survey of 400 can only move in steps of 1/400 = 0.25 points, so “more than 28%” means 113 or more informal workers (28% is exactly 112). The smooth normal curve also counts the area between 112 and 113, so it overstates the probability a little: the exact binomial answer is 0.0758, which the simulation (0.0741) matches up to simulation noise of about ±0.003. With larger samples the steps get smaller and the gap disappears.</p>" },
+  ],
+};
+</script>
+<script type="module" src="../assets/seminar.js?v=4"></script>
+</body>
+</html>
