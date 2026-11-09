@@ -15,6 +15,7 @@ ps1/index.html       Problem Set 1: the questions, hints, solutions and data
 ps2/index.html       Problem Set 2: step-by-step solutions
 ps3/index.html       Problem Set 3: step-by-step solutions and the R questions
 ps4/index.html       Problem Set 4: step-by-step solutions and the R question
+ps5/index.html       Problem Set 5: step-by-step solutions and the R questions
 r-guide/index.html   a short guide to R for students, with runnable examples
 ```
 
