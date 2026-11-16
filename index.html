@@ -3,62 +3,358 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECN7020 Interactive Problem Sets — SOAS Economics</title>
-<link rel="stylesheet" href="assets/seminar.css?v=4">
+<title>Problem Set 6 Solutions — ECN7020, SOAS Economics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="stylesheet" href="../assets/seminar.css?v=4">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <div class="topline">
-    <div class="brand">SOAS<span>Economics</span></div>
-    <div class="module">ECN7020 Statistical Methods and Machine Learning</div>
-  </div>
-  <header class="hero">
-    <div class="eyebrow">2026/27 · Interactive problem sets</div>
-    <h1>Problem Sets You Can Run in Your Browser</h1>
-    <p class="lead">Each problem set has the written questions and an R editor that runs real R code, with nothing to install. Attempt each one before the seminar where we go through it.</p>
-  </header>
+<noscript>This page needs JavaScript.</noscript>
 
-  <!-- To add a problem set: copy a card, change the link and the text, and remove class "soon". -->
-  <div class="cards">
-    <a class="card" href="ps1/">
-      <div class="week">Week 1 · Problem Set 1</div>
-      <h3>Sampling, Bias and Describing Data</h3>
-      <p>Validity and bias, a newspaper poll, frequency tables, mean and spread, histograms, and regional income in the UK, Germany and France.</p>
-    </a>
-    <a class="card" href="ps2/">
-      <div class="week">Week 2 · Problem Set 2 · Solutions</div>
-      <h3>Probability, Bayes' Theorem and Random Variables</h3>
-      <p>Step-by-step solutions on probability rules, Bayes' theorem and expected value, with live simulations and an optional R exercise.</p>
-    </a>
-    <a class="card" href="ps3/">
-      <div class="week">Week 3 · Problem Set 3 · Solutions</div>
-      <h3>Distributions, Sampling and the Central Limit Theorem</h3>
-      <p>Step-by-step solutions on the binomial and normal distributions, standard errors and the central limit theorem, with live simulations and the R questions.</p>
-    </a>
-    <a class="card" href="ps4/">
-      <div class="week">Week 4 · Problem Set 4 · Solutions</div>
-      <h3>Estimation and Standard Errors</h3>
-      <p>Step-by-step solutions on sample means and proportions, opinion polls and estimators, with live simulations and the R question.</p>
-    </a>
-    <a class="card" href="ps5/">
-      <div class="week">Week 5 · Problem Set 5 · Solutions</div>
-      <h3>Confidence Intervals and Hypothesis Testing</h3>
-      <p>Step-by-step solutions on confidence intervals, z- and t-tests and two-group comparisons, with live simulations and the R questions.</p>
-    </a>
-  </div>
+<script>
+// Question 4 data: 1978 earnings ($) of the 445 people in the job-training experiment
+// (R package causaldata, nsw_mixtape): the first 185 were in the training group (treat = 1), the other 260 in the control group.
+const RE78 = "9930.046,3595.894,24909.45,7506.146,289.79,4056.494,0,8472.158,2164.022,12418.07,8173.908,17094.64,0,18739.93,3023.879,3228.503,14581.86,7693.4,10804.32,10747.35,0,5149.501,6408.95,1991.4,11163.17,9642.999,9897.049,11142.87,16218.04,995.7,0,6551.592,1574.424,0,3191.753,20505.93,6181.88,5911.551,3094.156,0,1254.582,13188.83,8061.485,2787.96,3972.54,0,0,0,12187.41,4843.176,0,8087.487,0,2348.973,590.782,0,1067.506,7284.986,13167.52,1048.432,0,1923.938,4666.236,549.298,762.915,10694.29,0,0,8546.715,7479.656,0,647.205,0,11965.81,9598.541,18783.35,18678.08,0,23005.6,6456.697,0,2321.107,4941.849,0,0,0,3881.284,17230.96,8048.603,0,14509.93,0,0,9983.784,0,5587.503,4482.845,2456.153,0,26817.6,0,9265.788,485.23,4814.627,7458.105,0,34099.28,1953.268,0,0,8881.665,6210.67,0,929.884,0,12558.02,22163.25,1652.637,8124.715,671.332,17814.98,9737.154,17685.18,0,4321.705,1773.423,0,11233.26,559.443,1085.44,5445.2,60307.93,1460.36,6943.342,4032.708,10363.27,4232.309,11141.39,0,13385.86,4849.559,0,1660.508,0,2484.549,4146.603,9970.681,0,26372.28,5615.189,3196.571,6167.681,7535.942,8484.239,1294.409,0,5010.342,9371.037,0,4279.613,3462.564,7382.549,0,0,10976.51,13829.62,6788.463,9558.501,13228.28,743.667,5522.788,1424.944,1358.643,0,672.877,0,10092.83,6281.433,12590.71,5112.014,15952.6,36646.95,12803.97,3786.628,4181.942,0,12383.68,0,10740.08,11796.47,9227.052,10569.27,6040.335,3880.833,0,5775.062,0,0,0,0,2113.722,7618.639,9920.945,4196.375,0,16658.25,9722.003,3783.66,3515.929,17014.59,0,0,5970.257,1859.167,6191.943,7284.394,445.831,0,0,7367.04,0,2015.503,15791.13,1135.47,6378.72,7176.187,0,7952.54,0,7152.132,8329.823,0,12429.91,0,5088.76,4374.04,1553.291,0,1698.304,0,11294.63,0,14626.39,12898.38,5767.133,6527.919,3931.238,20942.24,0,0,14690.35,0,3418.097,11197.34,0,0,0,1455.69,1890.937,4485.616,13613.35,1390.509,5843.796,8598.522,2920.199,0,6735.32,0,0,0,44.755,0,0,3701.812,6930.336,3795.799,5193.247,2193.528,11120.53,7609.518,2169.027,0,1264.232,0,0,0,0,5712.643,0,0,0,1184.882,10225.88,0,4715.371,289.79,0,8190.421,4813.05,7344.678,0,0,0,0,4350.907,7812.522,0,3644.655,4844.803,0,0,0,14792.9,0,0,3746.701,1568.15,7010.444,3811.683,10798.56,4657.273,8551.533,4309.878,5286.396,12486.17,10877.35,202.285,2657.705,4132.577,11303.14,0,0,0,2189.426,0,10210.99,11048.08,0,8993.865,5071.801,3194.01,0,5193.089,0,275.566,3590.702,0,12797.67,2035.914,2389.679,0,8469.275,0,1143.387,5114.814,781.224,3343.224,9602.439,0,16461.57,6771.622,0,11011.57,0,0,0,4251.127,2891.668,5514.365,4858.895,4812.576,0,604.199,14527.88,0,7300.498,0,4159.919,0,5497.591,0,0,0,16477.02,0,39483.53,11306.27,6672.021,9378.653,5088.986,2639.29,9495.902,20893.11,0,10361.69,1740.199,0,0,6354.194,7171,5573.547,439.688,16969.95,5344.021,2725.322,9772.283,0,0,1720.907,0,18859.89,1324.542,284.658,11195.93,0,0,7565.273,0,0,0,4974.586,12780.02,3523.578,0,10274.84,4779.72,16988.18,499.257,3083.581,3708.719,7659.218,20857.84,7078.178,0,1239.844,3982.801,0,0,7094.92,12359.31,0,0,16900.3,7343.964,5448.801";
 
-  <div class="cards">
-    <a class="card" href="r-guide/" style="border-top-color:#2A5A88">
-      <div class="week" style="color:#2A5A88">Getting started</div>
-      <h3>Using R: A Short Guide</h3>
-      <p>The basics you need for this module, common error messages, good habits and a quick reference. Every example runs in the page.</p>
-    </a>
-  </div>
+// ---------------------------------------------------------------------------
+// Problem Set 6 solutions: content only. The layout, the step-by-step reveal,
+// the simulations and the R engine are in ../assets/seminar.js.
+// Maths is written in TeX between \( \) or \[ \] and typeset by KaTeX.
+// ---------------------------------------------------------------------------
 
-  <footer>
-    <span>Dr Angelos Diamantopoulos · Department of Economics, SOAS University of London</span>
-    <span>Lecture slides and data files are on Moodle.</span>
-  </footer>
-</div>
+// One random draw for each simulation.
+function drawNormal(mu, sd) {     // Box–Muller: one draw from N(mu, sd^2)
+  const u = 1 - Math.random(), v = Math.random();
+  return mu + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+// Question 1(a): if the programme had no effect, the gap between the two group means is roughly normal,
+// centred on 0 with standard error 10.97 (Problem Set 5, Question 7). Is the gap $20 or more in either direction?
+function noEffectGap() { return Math.abs(drawNormal(0, 10.97)) >= 20; }
+// Question 2: one small firm. It under-reports with probability 0.05; each check flags 80% of under-reporters
+// and 10% of the others, independently.
+function firm() {
+  const u = Math.random() < 0.05, rate = u ? 0.80 : 0.10;
+  return { u, f1: Math.random() < rate, f2: Math.random() < rate };
+}
+// Question 3: draw a district's share p from the prior Beta(4, 6) (the 4th smallest of 9 uniforms),
+// then survey 20 of its firms. Keep only districts where 12 of 20 accept mobile payments.
+function betaInt(a, b) { const u = []; for (let i = 0; i < a + b - 1; i++) u.push(Math.random()); u.sort((x, y) => x - y); return u[a - 1]; }
+function district() {
+  const p = betaInt(4, 6); let x = 0;
+  for (let i = 0; i < 20; i++) if (Math.random() < p) x++;
+  return { p, x };
+}
+
+// Small sketch of beta curves (inline SVG): each curve is { a, b, col, label, at (where to put the label), dash },
+// shade: { a, b, lo, hi } fills the area under one curve between lo and hi; ticks: values on the axis (0 to 1).
+function lbeta(a, b) { return lg(a) + lg(b) - lg(a + b); }
+function lg(z) {  // log-gamma (Lanczos)
+  const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
+    12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  if (z < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * z)) - lg(1 - z);
+  z -= 1; let x = c[0]; for (let i = 1; i < g + 2; i++) x += c[i] / (z + i);
+  const t = z + g + 0.5; return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x);
+}
+function dbeta(p, a, b) { if (p <= 0 || p >= 1) return (p <= 0 && a < 1) || (p >= 1 && b < 1) ? Infinity : (a === 1 && p <= 0) || (b === 1 && p >= 1) ? Math.exp(-lbeta(a, b)) : 0; return Math.exp((a - 1) * Math.log(p) + (b - 1) * Math.log(1 - p) - lbeta(a, b)); }
+function bcurve(o) {
+  const W = o.w || 520, H = o.h || 200, L = 14, R = 14, T = o.title ? 26 : 12, B = 30;
+  const lo = o.lo || 0, hi = o.hi || 1, n = 240;
+  const X = (x) => L + (x - lo) / (hi - lo) * (W - L - R);
+  let ymax = 0;
+  o.curves.forEach((c) => { for (let i = 1; i < n; i++) { const x = lo + (hi - lo) * i / n; ymax = Math.max(ymax, dbeta(x, c.a, c.b)); } });
+  ymax *= 1.08;
+  const Y = (v) => T + (1 - Math.min(v, ymax) / ymax) * (H - T - B), base = Y(0);
+  let g = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + (o.alt || "Beta curves") +
+    '" style="width:100%;max-width:' + W + 'px;display:block;margin:10px 0;background:#FFFFFF;border-radius:8px">';
+  if (o.title) g += '<text x="' + (W / 2) + '" y="17" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#1A1A1A">' + o.title + '</text>';
+  if (o.shade) {
+    const s = o.shade; let p = "M" + X(s.lo).toFixed(1) + " " + base;
+    for (let i = 0; i <= n; i++) { const x = s.lo + (s.hi - s.lo) * i / n; p += "L" + X(x).toFixed(1) + " " + Y(dbeta(x, s.a, s.b)).toFixed(1); }
+    g += '<path d="' + p + "L" + X(s.hi).toFixed(1) + " " + base + 'Z" fill="' + (s.col || "#E36533") + '" fill-opacity="0.45"/>';
+  }
+  o.curves.forEach((c) => {
+    let d = "";
+    for (let i = 0; i <= n; i++) { const x = lo + (hi - lo) * i / n; const y = dbeta(Math.min(Math.max(x, 1e-6), 1 - 1e-6), c.a, c.b); d += (i ? "L" : "M") + X(x).toFixed(1) + " " + Y(y).toFixed(1); }
+    g += '<path d="' + d + '" fill="none" stroke="' + c.col + '" stroke-width="2.4"' + (c.dash ? ' stroke-dasharray="6 4"' : "") + '/>';
+    if (c.label) { const at = c.at !== undefined ? c.at : (c.a - 1) / (c.a + c.b - 2); const ly = Math.max(T + 12, Y(dbeta(at, c.a, c.b)) - 8);
+      g += '<text x="' + X(at) + '" y="' + ly + '" text-anchor="' + (c.anchor || "middle") + '" font-family="Arial" font-size="12" font-weight="bold" fill="' + c.col + '">' + c.label + '</text>'; }
+  });
+  g += '<line x1="' + L + '" y1="' + base + '" x2="' + (W - R) + '" y2="' + base + '" stroke="#1A1A1A" stroke-width="1"/>';
+  (o.ticks || [0, 0.2, 0.4, 0.6, 0.8, 1]).forEach((t) => {
+    const tk = typeof t === "object" ? t : { x: t, t: String(t) };
+    g += '<line x1="' + X(tk.x) + '" y1="' + base + '" x2="' + X(tk.x) + '" y2="' + (base + 5) + '" stroke="#1A1A1A"/>';
+    g += '<text x="' + X(tk.x) + '" y="' + (base + 18) + '" text-anchor="middle" font-family="Arial" font-size="12" fill="#1A1A1A">' + tk.t + '</text>';
+  });
+  (o.dashed || []).forEach((x) => { g += '<line x1="' + X(x) + '" y1="' + (T + 2) + '" x2="' + X(x) + '" y2="' + base + '" stroke="#1A1A1A" stroke-dasharray="4 3"/>'; });
+  (o.notes || []).forEach((nt) => { g += '<text x="' + X(nt.at) + '" y="' + nt.y + '" text-anchor="' + (nt.anchor || "middle") + '" font-family="Arial" font-size="12" fill="#555555">' + nt.text + '</text>'; });
+  return g + "</svg>";
+}
+const BL = "#2A5A88", OR = "#E36533", GR = "#3C6E2F";
+
+window.SEMINAR = {
+  id: "ps6",
+  eyebrow: "Week 6 · Problem Set 6 · Solutions",
+  title: "Resampling and Bayesian Inference",
+  lead: "Worked solutions. Questions 1 to 3 are for the Week 7 seminar; Questions 4 and 5 use R and are for you to work through on your own. Each part shows the question, then a solution box that reveals the answer one step at a time: what we know, the formula, the numbers, and what it means.",
+  note: "<b>How it works.</b> Click <b>Show step 1</b> in a solution box, then <b>Next step</b> for each step. You can also click a box and use <b>→</b> (or <b>Page Down</b> on a presentation clicker) to go forward and <b>←</b> to go back. <b>Presentation mode</b> makes everything larger for the projector. Under several answers, <b>Check it by simulation</b> draws cases at random and shows the running share settling on the answer: watch how many draws it takes. The R questions run real R code in your browser, with nothing to install. The job-training data for Question 4 are already loaded as <code>d</code> (in RStudio: <code>library(causaldata); d &lt;- nsw_mixtape</code>).",
+  footer: "ECN7020 · Problem Set 6 · Solutions · Questions 1–3 discussed in the Week 7 seminar",
+  readyText: "R is ready, with the job-training data loaded as d. Click Run on the R steps.",
+  progress: false,
+  packages: [],
+  setup: "d <- data.frame(treat = rep(c(1L, 0L), c(185, 260)), re78 = c(" + RE78 + "))\nnsw_mixtape <- d\ninvisible(NULL)",
+  items: [
+
+    // ================================================================== Question 1
+    { type: "section", eyebrow: "Question 1", title: "Reading Resampling Results",
+      text: "<p>In a randomised trial of a microfinance programme (Problem Set 5, Question 7), 200 households were offered loans and 250 were not. A year later, mean monthly income was $310 in the first group and $290 in the second. The researchers also analysed their data by resampling.</p>" },
+
+    { type: "solution", label: "1(a)", title: "The permutation p-value",
+      question: "They shuffled the labels “offered” and “not offered” 10,000 times. In 690 of the shuffles the difference in mean income was $20 or more in either direction. What is the permutation <i>p</i>-value? What does it tell you?",
+      steps: [
+        { k: "What we know", b: String.raw`<p>The real difference: \(d = \bar{x}_1 - \bar{x}_2 = 310 - 290 = \$20\). Number of shuffles: \(B = 10{,}000\). Shuffles with a gap at least as big as $20 in either direction: 690.</p>` },
+        { k: "Write the formula", b: String.raw`\[ p = \frac{\text{number of shuffles with } |d^*| \ge |d|}{B} \]<p>\(d^*\) is the gap in one shuffle. “Either direction” makes it two-tailed.</p>` },
+        { k: "Substitute and compute", b: String.raw`\[ p = \frac{690}{10{,}000} = 0.069 \]` },
+        { k: "What it tells us", b: String.raw`<span class="answer-line">If the programme had no effect, a gap of $20 or more would arise by chance in about 7% of random assignments.</span><p>That is weak evidence: \(0.069 > 0.05\), so we do not reject \(H_0\) at 5% (we would at 10%). It matches the formula answer in Problem Set 5, Question 7, where \(p = 0.069\) too.</p>` },
+      ],
+      sim: { intro: "Suppose the programme had no effect. Each draw is one random assignment of the households, and records the gap between the two group means. Orange squares are gaps of $20 or more in either direction. The share settles on the p-value.",
+        target: 0.0683, decimals: 3, targetLabel: "p-value (formula)", xLabel: "Random assignments (log scale)", yLabel: "Share with a gap of $20 or more",
+        maxDraws: 20000, tol: 0.005, yRange: [0, 0.2], yTicks: [0, 0.05, 0.1, 0.15, 0.2], legend: { hit: "Gap ≥ $20", miss: "Smaller gap" },
+        draw: () => ({ hit: noEffectGap() }) } },
+
+    { type: "solution", label: "1(b)", title: "Why shuffle the labels?",
+      question: "Why is shuffling the labels a sensible way to find out what would happen if the programme had no effect?",
+      steps: [
+        { k: "If the programme had no effect", b: "<p>Each household would have had the same income whichever group it was in. The labels “offered” and “not offered” would carry no information.</p>" },
+        { k: "The assignment was random", b: "<p>So every other split of the 450 households into 200 and 250 was just as likely to have happened as the real one.</p>" },
+        { k: "Conclude", b: "<span class='answer-line'>Shuffling replays the random assignment with no programme effect, so the shuffled gaps show exactly what chance alone produces under H₀.</span>" },
+      ] },
+
+    { type: "solution", label: "1(c)", title: "The bootstrap interval for the median",
+      question: "They bootstrapped the difference in <i>median</i> income between the groups. The middle 95% of the 10,000 bootstrap differences ran from −$4 to $38. Interpret this interval.",
+      steps: [
+        { k: "What the interval is", b: "<p>A 95% percentile bootstrap confidence interval: the 2.5th to the 97.5th percentile of the 10,000 resampled differences in medians.</p>" },
+        { k: "Interpret", b: "<span class='answer-line'>We are 95% confident that the difference in median monthly income between households offered loans and the others lies between −$4 and $38.</span>" },
+        { k: "What it shows", b: "<p>The interval includes 0, so at the 5% level the data do not establish an effect on the typical (median) household. But they are consistent with a gain of up to about $38 a month.</p>" },
+      ] },
+
+    { type: "solution", label: "1(d)", title: "Why the bootstrap and not a formula?",
+      question: "Why might they have used the bootstrap for the median, and not a formula?",
+      steps: [
+        { k: "No simple formula", b: String.raw`<p>There is no simple formula for the standard error of a median, or of a difference in medians, like \(s / \sqrt{n}\) for a mean.</p>` },
+        { k: "Skewed data", b: "<p>Incomes are skewed, so formulas that rely on normality are doubtful.</p>" },
+        { k: "Conclude", b: "<span class='answer-line'>The bootstrap needs neither: it estimates the sampling distribution by resampling the data themselves.</span>" },
+      ] },
+
+    // ================================================================== Question 2
+    { type: "section", eyebrow: "Question 2", title: "Bayes' Theorem in Sequence",
+      text: "<p>A tax authority knows that 5% of small firms under-report their income. Its audit-selection model flags 80% of the firms that under-report, and wrongly flags 10% of the firms that do not.</p>" },
+
+    { type: "solution", label: "2(a)", title: "Flagged: how likely is under-reporting?",
+      question: "The model flags a firm. What is the probability that the firm under-reports?",
+      steps: [
+        { k: "Name the events and what we know", b: String.raw`<p>\(U\) = the firm under-reports; \(F\) = the model flags the firm.</p>\[ P(U) = 0.05, \quad P(U^c) = 0.95, \quad P(F \mid U) = 0.80, \quad P(F \mid U^c) = 0.10 \]<p>We want \(P(U \mid F)\): under-reporting among flagged firms.</p>` },
+        { k: "Write the formula", b: String.raw`<p>Bayes' theorem, with the law of total probability underneath:</p>\[ P(U \mid F) = \frac{P(F \mid U)\,P(U)}{P(F \mid U)\,P(U) + P(F \mid U^c)\,P(U^c)} \]` },
+        { k: "Substitute", b: String.raw`\[ P(U \mid F) = \frac{0.80 \times 0.05}{0.80 \times 0.05 + 0.10 \times 0.95} \]` },
+        { k: "Solve", b: String.raw`\[ = \frac{0.040}{0.040 + 0.095} = \frac{0.040}{0.135} = 0.296 \]<span class="answer-line">About 30% of flagged firms under-report.</span>` },
+        { k: "In counts", b: "<p>Of 1,000 firms, 50 under-report and the model flags 40 of them; 950 do not, and it flags 95 of them. So 135 are flagged, of which 40 under-report: 40 ÷ 135 = 0.296. Most flagged firms are honest, because honest firms are so much more common.</p>" },
+      ],
+      sim: { intro: "Each draw is a small firm. Only flagged firms count (grey squares are firms the model does not flag). Orange squares are flagged firms that really under-report.",
+        target: 0.2963, targetLabel: "Exact P(U | F)", condLabel: "Flagged firms", xLabel: "Firms drawn (log scale)", yLabel: "Share of flagged firms that under-report",
+        maxDraws: 20000, tol: 0.01, yRange: [0, 0.6], yTicks: [0, 0.2, 0.4, 0.6], legend: { hit: "Flagged, under-reports", miss: "Flagged, honest", out: "Not flagged" },
+        draw: () => { const f = firm(); return { in: f.f1, hit: f.u }; } } },
+
+    { type: "solution", label: "2(b)", title: "A second, independent check",
+      question: "A second, independent check with the same accuracy also flags the firm. What is the probability now?",
+      steps: [
+        { k: "Yesterday's posterior is today's prior", b: String.raw`<p>After the first flag we believe \(P(U) = 0.296\), so \(P(U^c) = 0.704\). The second check has the same accuracy: \(P(F_2 \mid U) = 0.80\), \(P(F_2 \mid U^c) = 0.10\).</p><p>We want \(P(U \mid F_1, F_2)\).</p>` },
+        { k: "Write the formula", b: String.raw`\[ P(U \mid F_1, F_2) = \frac{P(F_2 \mid U)\,P(U \mid F_1)}{P(F_2 \mid U)\,P(U \mid F_1) + P(F_2 \mid U^c)\,P(U^c \mid F_1)} \]` },
+        { k: "Substitute", b: String.raw`\[ = \frac{0.80 \times 0.296}{0.80 \times 0.296 + 0.10 \times 0.704} \]` },
+        { k: "Solve", b: String.raw`\[ = \frac{0.237}{0.237 + 0.070} = \frac{0.237}{0.307} = 0.771 \]<span class="answer-line">After two independent flags, about 77% of such firms under-report.</span>` },
+        { k: "Check: both flags at once", b: String.raw`\[ \frac{0.05 \times 0.80^2}{0.05 \times 0.80^2 + 0.95 \times 0.10^2} = \frac{0.0320}{0.0320 + 0.0095} = \frac{0.0320}{0.0415} = 0.771 \]<p>Updating in two steps or all at once gives the same answer.</p>` },
+      ],
+      sim: { intro: "Each draw is a small firm, checked twice, independently. Only firms flagged by both checks count: they are rare, so it takes many draws. Orange squares are double-flagged firms that really under-report.",
+        target: 0.7711, targetLabel: "Exact P(U | F₁, F₂)", condLabel: "Flagged twice", xLabel: "Firms drawn (log scale)", yLabel: "Share of double-flagged firms that under-report",
+        maxDraws: 50000, tol: 0.02, yRange: [0.4, 1], yTicks: [0.4, 0.6, 0.8, 1], legend: { hit: "Flagged twice, under-reports", miss: "Flagged twice, honest", out: "Not flagged twice" },
+        draw: () => { const f = firm(); return { in: f.f1 && f.f2, hit: f.u }; } } },
+
+    { type: "solution", label: "2(c)", title: "Why independence matters",
+      question: "Why does it matter that the second check is independent of the first? Give an example where it would not be.",
+      steps: [
+        { k: "What (b) assumed", b: String.raw`<p>(b) multiplies the two likelihoods, \(0.80 \times 0.80\) and \(0.10 \times 0.10\). That is only valid if the checks are independent given the truth: once we know whether the firm under-reports, the first flag tells us nothing about the second.</p>` },
+        { k: "An example where it fails", b: "<p>A second model built from the same tax returns and bank records. An honest firm that looks suspicious to one model will look suspicious to the other, so the second flag is almost guaranteed and adds little.</p>" },
+        { k: "Conclude", b: "<span class='answer-line'>Without independence the second flag is not new evidence, and 0.771 overstates the probability.</span>" },
+      ] },
+
+    // ================================================================== Question 3
+    { type: "section", eyebrow: "Question 3", title: "The Beta–Binomial Model",
+      text: "<p>A researcher wants to know <i>p</i>, the share of small firms in a district that accept mobile payments. Surveys in similar districts suggest about 40%, and she treats that experience as worth about 10 firms: her prior is Beta(4, 6). She then surveys 20 firms in the district, and 12 of them accept mobile payments.</p>" +
+        String.raw`<p>The results we use: a prior Beta\((a, b)\) and \(x\) successes in \(n\) trials give the posterior Beta\((a + x,\, b + n - x)\), and the mean of Beta\((a, b)\) is \(a / (a + b)\).</p>` },
+
+    { type: "solution", label: "3(a)", title: "The prior",
+      question: "What is the mean of her prior? What does <i>a</i> + <i>b</i> = 10 mean?",
+      steps: [
+        { k: "What we know", b: String.raw`<p>Prior: Beta\((a, b)\) with \(a = 4\), \(b = 6\).</p>` },
+        { k: "Write the formula", b: String.raw`\[ E(p) = \frac{a}{a + b} \]` },
+        { k: "Substitute and compute", b: String.raw`\[ E(p) = \frac{4}{4 + 6} = 0.40 \]` + bcurve({ curves: [{ a: 4, b: 6, col: BL, label: "Prior Beta(4, 6)" }], dashed: [0.4], alt: "The prior Beta(4, 6), centred near 0.4" }) },
+        { k: "What a + b means", b: "<span class='answer-line'>a + b = 10 is how much the prior is worth: as if she had already surveyed 10 firms, 4 accepting and 6 not.</span><p>The larger a + b, the narrower and more confident the prior.</p>" },
+      ] },
+
+    { type: "solution", label: "3(b)", title: "The posterior",
+      question: "Find her posterior distribution and its mean.",
+      steps: [
+        { k: "What we know", b: String.raw`<p>Prior \(a = 4\), \(b = 6\). Data: \(n = 20\) firms, \(x = 12\) accept, so \(n - x = 8\) do not.</p>` },
+        { k: "Write the formulas", b: String.raw`\[ \text{posterior} = \text{Beta}(a + x,\; b + n - x), \qquad \text{posterior mean} = \frac{a + x}{a + b + n} \]` },
+        { k: "Substitute: the posterior", b: String.raw`\[ \text{Beta}(4 + 12,\; 6 + 8) = \text{Beta}(16, 14) \]` },
+        { k: "Substitute: the mean", b: String.raw`\[ \frac{16}{30} = 0.533 \]<span class="answer-line">After the survey her best estimate is that about 53% of the district's firms accept mobile payments.</span>` +
+          bcurve({ curves: [{ a: 4, b: 6, col: BL, label: "Prior", at: 0.25, dash: true }, { a: 16, b: 14, col: OR, label: "Posterior Beta(16, 14)" }], dashed: [0.6], notes: [{ at: 0.62, y: 26, anchor: "start", text: "data: 12/20 = 0.6" }], alt: "Prior Beta(4, 6) and the narrower posterior Beta(16, 14), between the prior and the data" }) },
+      ] },
+
+    { type: "solution", label: "3(c)", title: "A weighted average",
+      question: "Show that the posterior mean is a weighted average of the prior mean and the sample proportion. What is the weight on the prior?",
+      steps: [
+        { k: "What we know", b: String.raw`<p>Prior mean 0.40, worth \(a + b = 10\) firms. Sample proportion \(\hat{p} = x / n = 12 / 20 = 0.60\), worth \(n = 20\) firms.</p>` },
+        { k: "Write the formula", b: String.raw`\[ \text{posterior mean} = w \times \frac{a}{a + b} + (1 - w) \times \hat{p}, \qquad w = \frac{a + b}{a + b + n} \]` },
+        { k: "Substitute: the weight", b: String.raw`\[ w = \frac{10}{10 + 20} = \frac{1}{3} \]` },
+        { k: "Substitute: the average", b: String.raw`\[ \tfrac{1}{3} \times 0.40 + \tfrac{2}{3} \times 0.60 = 0.133 + 0.400 = 0.533 \]<span class="answer-line">The same as in (b). The prior gets a third of the weight: it is worth 10 firms and the data 20.</span>` },
+      ] },
+
+    { type: "solution", label: "3(d)", title: "A flat prior",
+      question: "A second researcher uses a flat prior, Beta(1, 1). Find his posterior and its mean. Why is it closer to the sample proportion?",
+      steps: [
+        { k: "Substitute into the rule", b: String.raw`\[ \text{Beta}(1 + 12,\; 1 + 8) = \text{Beta}(13, 9), \qquad \text{mean} = \frac{13}{22} = 0.591 \]` },
+        { k: "The weight on the prior", b: String.raw`\[ w = \frac{1 + 1}{1 + 1 + 20} = \frac{2}{22} = 0.09 \]` },
+        { k: "Why it is closer to 0.6", b: "<span class='answer-line'>A flat prior is worth only 2 firms, so the data dominate.</span><p>The posterior mean is pulled only slightly from 0.60 towards the flat prior's mean of 0.50.</p>" +
+          bcurve({ curves: [{ a: 16, b: 14, col: OR, label: "Her posterior, mean 0.533", at: 0.42, anchor: "end" }, { a: 13, b: 9, col: GR, label: "His posterior, mean 0.591", at: 0.72, anchor: "start" }], dashed: [0.6], alt: "Two posteriors: Beta(16, 14) and Beta(13, 9), the second closer to 0.6" }) },
+      ] },
+
+    { type: "solution", label: "3(e)", title: "Reading the posterior",
+      question: "For the first researcher, R gives a 95% credible interval of 0.357 to 0.706 and <i>P</i>(<i>p</i> &gt; 0.5) = 0.64. Interpret both numbers. Which sentence can she write that a frequentist with a 95% confidence interval cannot?",
+      steps: [
+        { k: "The credible interval", b: "<span class='answer-line'>Given her prior and the survey, there is a 95% probability that the share of firms accepting mobile payments is between 35.7% and 70.6%.</span>" +
+          bcurve({ curves: [{ a: 16, b: 14, col: OR }], shade: { a: 16, b: 14, lo: 0.357, hi: 0.706 }, ticks: [0, { x: 0.357, t: "0.357" }, { x: 0.706, t: "0.706" }, 1], notes: [{ at: 0.53, y: 150, text: "95%" }], alt: "Posterior Beta(16, 14) with the middle 95% shaded, 0.357 to 0.706" }) },
+        { k: "The direct probability", b: "<span class='answer-line'>There is a 64% probability that more than half of the district's firms accept mobile payments.</span>" +
+          bcurve({ curves: [{ a: 16, b: 14, col: OR }], shade: { a: 16, b: 14, lo: 0.5, hi: 1 }, ticks: [0, { x: 0.5, t: "0.5" }, 1], notes: [{ at: 0.6, y: 150, text: "0.64" }], alt: "Posterior Beta(16, 14) with the area above 0.5 shaded: 0.64" }) +
+          "<p>In R: <code>qbeta(c(0.025, 0.975), 16, 14)</code> and <code>1 - pbeta(0.5, 16, 14)</code>.</p>" },
+        { k: "What only she can write", b: String.raw`<p>“There is a 95% probability that \(p\) is between 0.357 and 0.706.” A frequentist treats \(p\) as fixed, so the 95% of a confidence interval describes the method (95% of intervals built this way contain \(p\)), not this interval.</p>` },
+        { k: "For comparison", b: String.raw`<p>The Week 5 interval uses the data alone:</p>\[ 0.60 \pm 1.96 \times \sqrt{\frac{0.6 \times 0.4}{20}} = 0.60 \pm 0.21 \quad\Longrightarrow\quad 0.39 \text{ to } 0.81 \]<span class="answer-line">Centred on the sample proportion, because it ignores what was known beforehand.</span>` },
+      ],
+      sim: { intro: "Bayes by brute force. Each draw is a district: its share p is drawn from her prior Beta(4, 6), then 20 of its firms are surveyed. Only districts where 12 of the 20 accept count (grey squares are the others). Orange squares are kept districts whose share is above 0.5. The share settles on the posterior probability.",
+        target: 0.644, targetLabel: "Exact P(p > 0.5 | data)", condLabel: "Districts with 12 of 20", xLabel: "Districts drawn (log scale)", yLabel: "Share with p above 0.5",
+        maxDraws: 50000, tol: 0.02, yRange: [0.3, 1], yTicks: [0.4, 0.6, 0.8, 1], legend: { hit: "12 of 20, p > 0.5", miss: "12 of 20, p ≤ 0.5", out: "Not 12 of 20" },
+        draw: () => { const r = district(); return { in: r.x === 12, hit: r.p > 0.5 }; } } },
+
+    // ================================================================== Question 4 (R)
+    { type: "section", eyebrow: "Questions using RStudio", title: "Question 4: The Training Programme by Resampling",
+      text: "<p>The R slides at the end of the Week 6 lecture show the code for this question. In RStudio, load the data with <code>library(causaldata); d &lt;- nsw_mixtape</code>. On this page they are already loaded as <code>d</code>, so you can skip that line. R takes a minute to start the first time; the status at the top of the page turns green when it is ready. Run the steps in order: later steps use objects created in earlier ones.</p>" },
+
+    { type: "r", title: "4(a). The permutation test", plot: { width: 680, height: 400 },
+      desc: "Run the permutation test from the lecture slide. What <i>p</i>-value do you get? Start with <code>treated &lt;- d$re78[d$treat == 1]</code> and <code>control &lt;- d$re78[d$treat == 0]</code>.",
+      h1: "If training did nothing, the labels are meaningless. Pool all 445 earnings, shuffle them, call the first 185 “trained” and the rest “control”, and record the gap. Do it 10,000 times, then count how many gaps are at least as big as the real one.",
+      h2: "<code>sample(all)</code> shuffles a vector; <code>replicate(10000, { ... })</code> repeats the shuffle; <code>mean(abs(perm) &gt;= obs)</code> is the share of shuffled gaps at least as big as the real one, in either direction. <code>set.seed(5)</code> makes the run repeatable.",
+      h3: `treated <- d$re78[d$treat == 1]; control <- d$re78[d$treat == 0]
+obs <- mean(treated) - mean(control)      # the real gap
+all <- c(treated, control)
+
+set.seed(5)
+perm <- replicate(10000, {
+  s <- sample(all)
+  mean(s[1:185]) - mean(s[186:445])
+})
+mean(abs(perm) >= obs)                    # the permutation p-value
+
+hist(perm, breaks = 50, col = "#E1EBF5", border = "white",
+     main = "10,000 shuffled gaps", xlab = "Gap in mean earnings ($)")
+abline(v = c(-obs, obs), col = "#E36533", lwd = 2)`,
+      h3note: "With set.seed(5), 39 of the 10,000 shuffled gaps are $1,794 or more in either direction: p = 0.0039. The histogram shows the shuffled gaps centred on 0, mostly within about ±$1,300; the real gap (the orange lines) is far out in the tails. We reject H₀ of no effect at the 1% level, as with the t-test (p = 0.008).",
+      code: "# Shuffle the labels 10,000 times and count the gaps at least as big as the real one\n" },
+
+    { type: "write", title: "4(a). Without set.seed(): does anything change?",
+      desc: "Run the permutation test again without <code>set.seed()</code>. Does the <i>p</i>-value change? Does your conclusion?",
+      h1: "Run the code two or three times without the seed. Compare the p-values with 1% and with the t-test's p-value.",
+      h2: "<ul><li>Each run uses different shuffles.</li><li>How much does p move?</li><li>Is it ever above 0.01?</li></ul>",
+      h3: "<p>Without the seed the shuffles are different each time, so the p-value moves a little, typically between about 0.003 and 0.006. The conclusion does not change: only a handful of the 10,000 shuffles give a gap of $1,794 or more, so we reject H₀ of no effect at the 1% level, as with the t-test (p = 0.008).</p>" },
+
+    { type: "r", title: "4(b). A bootstrap interval for the difference in means", plot: { width: 680, height: 400 },
+      desc: "Build a bootstrap 95% interval for the difference in <i>mean</i> earnings between the groups, and compare it with the interval from <code>t.test()</code> in Problem Set 5, Question 5(b).",
+      h1: "Resample each group from itself, with replacement, keeping its size (185 and 260). Record the difference in means; repeat 10,000 times; the middle 95% of the differences is the interval.",
+      h2: "<code>sample(treated, replace = TRUE)</code> resamples one group; <code>quantile(boot, c(0.025, 0.975))</code> gives the 2.5th and 97.5th percentiles; <code>t.test(treated, control)$conf.int</code> gives the formula interval.",
+      h3: `set.seed(6)
+boot <- replicate(10000,
+  mean(sample(treated, replace = TRUE)) - mean(sample(control, replace = TRUE)))
+quantile(boot, c(0.025, 0.975))           # bootstrap 95% interval
+t.test(treated, control)$conf.int         # the formula interval, PS5 5(b)
+
+hist(boot, breaks = 50, col = "#FBE9E1", border = "white",
+     main = "10,000 bootstrap differences in means", xlab = "Difference in mean earnings ($)")
+abline(v = quantile(boot, c(0.025, 0.975)), col = "#E36533", lwd = 2)`,
+      h3note: "With set.seed(6) the bootstrap 95% interval is $547 to $3,130; the t-test's interval is $474 to $3,115. The orange lines on the histogram mark the bootstrap interval.",
+      code: "# Resample each group with replacement, 10,000 times\n" },
+
+    { type: "write", title: "4(b). Compare the two intervals",
+      desc: "How does the bootstrap interval compare with the t-test's? Why?",
+      h1: "Put the two intervals side by side. Earnings are skewed, but what do you know about the mean of 185 or 260 observations?",
+      h2: "<ul><li>The two intervals.</li><li>The central limit theorem.</li><li>Does either contain 0?</li></ul>",
+      h3: "<p>The two intervals are very close: $547 to $3,130 by the bootstrap (with this seed) and $474 to $3,115 by the formula. For a difference in means with samples of 185 and 260, the central limit theorem works well even though earnings are skewed, so the formula and the bootstrap agree. Neither interval contains 0, matching the permutation test.</p>" },
+
+    // ================================================================== Question 5 (R)
+    { type: "section", eyebrow: "Questions using RStudio", title: "Question 5: Bayesian Inference in R",
+      text: "<p>No data needed: these steps use the beta–binomial rule and the four beta functions, <code>dbeta()</code>, <code>pbeta()</code>, <code>qbeta()</code> and <code>rbeta()</code>.</p>" },
+
+    { type: "r", title: "5(a). The pessimist's prior",
+      desc: "The lender in the lecture saw 31 defaults in 200 loans. Use the pessimist's prior, Beta(6, 14), to find the posterior mean, the 95% credible interval and <i>P</i>(<i>p</i> &gt; 0.20). Compare them with the answers from the prior Beta(2, 18) in the lecture.",
+      h1: "Add the defaults to a and the repayments (200 − 31 = 169) to b. Then summarise the posterior: its mean, its middle 95%, and the area above 0.20.",
+      h2: "Mean <code>a / (a + b)</code>; credible interval <code>qbeta(c(0.025, 0.975), a, b)</code>; <code>1 - pbeta(0.20, a, b)</code> is the area above 0.20.",
+      h3: `a <- 6 + 31; b <- 14 + 169                # pessimist: Beta(37, 183)
+a / (a + b)                               # posterior mean
+qbeta(c(0.025, 0.975), a, b)              # 95% credible interval
+1 - pbeta(0.20, a, b)                     # P(p > 0.20)
+
+a2 <- 2 + 31; b2 <- 18 + 169              # lecture: Beta(33, 187)
+a2 / (a2 + b2); qbeta(c(0.025, 0.975), a2, b2); 1 - pbeta(0.20, a2, b2)`,
+      h3note: "Pessimist's prior, posterior Beta(37, 183): mean 0.168, 95% credible interval 0.122 to 0.220, P(p &gt; 0.20) = 0.107. Lecture prior, posterior Beta(33, 187): mean 0.150, 0.106 to 0.200, P(p &gt; 0.20) = 0.025.",
+      code: "# Posterior from the pessimist's prior Beta(6, 14) and 31 defaults in 200 loans\n" },
+
+    { type: "write", title: "5(a). Does the prior matter here?",
+      desc: "Compare the two sets of answers. Does the prior matter much after 200 loans?",
+      h1: "Compare the means first, then the probability that p is above 20%.",
+      h2: "<ul><li>The two priors had means of 10% and 30%.</li><li>How far apart are the posterior means?</li><li>And P(p &gt; 0.20)?</li></ul>",
+      h3: "<p>The two priors had means of 10% and 30%; after 200 loans the posterior means, 0.150 and 0.168, are within two percentage points of each other, so the data have done most of the work. But the prior still matters for the board's question: the probability that p is above 20% is about 2.5% with one prior and about 11% with the other. A careful report would show both.</p>" },
+
+    { type: "r", title: "5(b). Did training raise employment by more than 5 points?", plot: { width: 680, height: 400 },
+      desc: "For the training experiment, draw 100,000 values from each posterior, Beta(141, 46) for the trainees and Beta(169, 93) for the controls. Estimate the probability that training raised employment by more than 5 percentage points, and a 95% credible interval for the difference.",
+      h1: "Each pair of draws is one plausible pair of employment rates. Their difference is one plausible value of the effect, so the 100,000 differences describe the posterior of the effect.",
+      h2: "<code>rbeta(1e5, 141, 46)</code> draws from a beta; <code>mean(pT - pC &gt; 0.05)</code> is the share above 5 points; <code>quantile(pT - pC, c(0.025, 0.975))</code> the credible interval.",
+      h3: `set.seed(7)
+pT <- rbeta(1e5, 141, 46); pC <- rbeta(1e5, 169, 93)
+mean(pT - pC > 0.05)                      # P(effect > 5 points)
+quantile(pT - pC, c(0.025, 0.975))        # 95% credible interval
+mean(pT > pC)                             # P(training helped at all)
+
+hist(pT - pC, breaks = 60, col = "#E4F0DE", border = "white",
+     main = "100,000 plausible effects of training", xlab = "Training minus control (share employed)")
+abline(v = 0.05, col = "#E36533", lwd = 2)`,
+      h3note: "With set.seed(7): P(effect &gt; 5 points) = 0.914; 95% credible interval 0.023 to 0.192, so 2 to 19 percentage points; P(training helped at all) = 0.994. Each draw of pT − pC is one plausible value of the effect, so any summary of it is one line of R.",
+      code: "# Draw from the two posteriors and look at the difference\n" },
+
+    { type: "r", title: "5(c). Grid approximation with the lender's prior",
+      desc: "Use the grid-approximation code from the lecture with the lender's prior, <code>prior &lt;- dbeta(p, 2, 18)</code>, and the data 3 defaults in 10 loans. Check that the posterior mean matches Beta(5, 25).",
+      h1: "The grid is the three-default-rates table with 101 rows: list the possible values of p, multiply prior by likelihood on each row, and rescale so the rows add up to 1.",
+      h2: "<code>p &lt;- seq(0, 1, by = 0.01)</code>; the likelihood of 3 defaults in 10 is <code>dbinom(3, 10, p)</code>; the posterior mean is <code>sum(p * post)</code>.",
+      h3: `p     <- seq(0, 1, by = 0.01)             # 101 possible default rates
+prior <- dbeta(p, 2, 18)                  # the lender's prior
+like  <- dbinom(3, 10, p)                 # 3 defaults in 10 loans
+post  <- prior * like; post <- post / sum(post)
+sum(p * post)                             # posterior mean on the grid
+5 / (5 + 25)                              # mean of Beta(5, 25)`,
+      h3note: "Both lines print 0.1667: the grid gives the same posterior mean as Beta(5, 25), 5 ÷ 30. The grid works for any prior we can write down; the beta prior simply lets us skip it.",
+      code: "# Grid approximation: prior times likelihood on 101 values of p\n" },
+  ],
+};
+</script>
+<script type="module" src="../assets/seminar.js?v=4"></script>
 </body>
 </html>
