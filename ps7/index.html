@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Problem Set 7 Solutions — ECN7020, SOAS Economics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="stylesheet" href="../assets/seminar.css?v=4">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/r/r.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+</head>
+<body>
+<noscript>This page needs JavaScript.</noscript>
+
+<script>
+// Problem Set 7 data: World Development Indicators (World Bank), 2019, 217 economies, regional aggregates removed.
+// lifeexp = life expectancy at birth (SP.DYN.LE00.IN); gdppc = GDP per head, PPP, constant 2021 international $ (NY.GDP.PCAP.PP.KD);
+// health = current health expenditure per head, PPP, current international $ (SH.XPD.CHEX.PP.CD). Downloaded 17 November 2026.
+// The same file is in this folder as wdi_health_2019.csv.
+const WDI_CSV = "iso3,country,region,income,lifeexp,gdppc,health\nABW,\"Aruba\",\"Latin America & Caribbean\",\"High income\",76.019,39755,\nAFG,\"Afghanistan\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Low income\",62.941,2927,383.2\nAGO,\"Angola\",\"Sub-Saharan Africa\",\"Lower middle income\",63.051,9713,188.9\nALB,\"Albania\",\"Europe & Central Asia\",\"Upper middle income\",79.467,16761,992.4\nAND,\"Andorra\",\"Europe & Central Asia\",\"High income\",84.098,63216,4091.2\nARE,\"United Arab Emirates\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",82.596,72823,3409.7\nARG,\"Argentina\",\"Latin America & Caribbean\",\"Upper middle income\",76.847,26630,2379.7\nARM,\"Armenia\",\"Europe & Central Asia\",\"Upper middle income\",76.222,16215,1738.6\nASM,\"American Samoa\",\"East Asia & Pacific\",\"High income\",72.751,,\nATG,\"Antigua and Barbuda\",\"Latin America & Caribbean\",\"High income\",77.168,29652,1135.5\nAUS,\"Australia\",\"East Asia & Pacific\",\"High income\",82.900,58049,5464.6\nAUT,\"Austria\",\"Europe & Central Asia\",\"High income\",81.895,64609,6428.2\nAZE,\"Azerbaijan\",\"Europe & Central Asia\",\"Upper middle income\",73.290,20101,691.4\nBDI,\"Burundi\",\"Sub-Saharan Africa\",\"Low income\",62.180,1055,70.5\nBEL,\"Belgium\",\"Europe & Central Asia\",\"High income\",81.995,60480,6176.0\nBEN,\"Benin\",\"Sub-Saharan Africa\",\"Lower middle income\",59.888,3281,94.5\nBFA,\"Burkina Faso\",\"Sub-Saharan Africa\",\"Low income\",60.184,2392,119.9\nBGD,\"Bangladesh\",\"South Asia\",\"Lower middle income\",72.625,6838,128.6\nBGR,\"Bulgaria\",\"Europe & Central Asia\",\"High income\",75.112,29150,1895.1\nBHR,\"Bahrain\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",80.471,56750,2139.1\nBHS,\"Bahamas, The\",\"Latin America & Caribbean\",\"High income\",71.408,33202,2019.9\nBIH,\"Bosnia and Herzegovina\",\"Europe & Central Asia\",\"Upper middle income\",77.394,17029,1466.5\nBLR,\"Belarus\",\"Europe & Central Asia\",\"Upper middle income\",74.227,26799,1305.0\nBLZ,\"Belize\",\"Latin America & Caribbean\",\"Upper middle income\",72.577,11766,507.2\nBMU,\"Bermuda\",\"North America\",\"High income\",81.251,95524,\nBOL,\"Bolivia\",\"Latin America & Caribbean\",\"Lower middle income\",67.820,11931,631.9\nBRA,\"Brazil\",\"Latin America & Caribbean\",\"Upper middle income\",75.809,18019,1545.0\nBRB,\"Barbados\",\"Latin America & Caribbean\",\"High income\",76.495,19890,1064.6\nBRN,\"Brunei Darussalam\",\"East Asia & Pacific\",\"High income\",75.049,80228,1547.3\nBTN,\"Bhutan\",\"South Asia\",\"Lower middle income\",72.005,14555,417.6\nBWA,\"Botswana\",\"Sub-Saharan Africa\",\"Upper middle income\",67.167,18106,975.3\nCAF,\"Central African Republic\",\"Sub-Saharan Africa\",\"Low income\",31.530,1145,78.4\nCAN,\"Canada\",\"North America\",\"High income\",82.159,57584,5555.0\nCHE,\"Switzerland\",\"Europe & Central Asia\",\"High income\",83.905,81695,8422.4\nCHI,\"Channel Islands\",\"Europe & Central Asia\",\"High income\",81.200,,\nCHL,\"Chile\",\"Latin America & Caribbean\",\"High income\",80.324,28228,2384.4\nCHN,\"China\",\"East Asia & Pacific\",\"Upper middle income\",77.940,18821,917.2\nCIV,\"Cote d'Ivoire\",\"Sub-Saharan Africa\",\"Lower middle income\",60.274,5895,175.9\nCMR,\"Cameroon\",\"Sub-Saharan Africa\",\"Lower middle income\",61.695,4882,154.9\nCOD,\"Congo, Dem. Rep.\",\"Sub-Saharan Africa\",\"Low income\",60.242,1395,40.3\nCOG,\"Congo, Rep.\",\"Sub-Saharan Africa\",\"Lower middle income\",63.152,6939,134.3\nCOL,\"Colombia\",\"Latin America & Caribbean\",\"Upper middle income\",76.793,17337,1267.7\nCOM,\"Comoros\",\"Sub-Saharan Africa\",\"Lower middle income\",65.662,3523,170.6\nCPV,\"Cabo Verde\",\"Sub-Saharan Africa\",\"Upper middle income\",75.449,9112,416.9\nCRI,\"Costa Rica\",\"Latin America & Caribbean\",\"High income\",80.296,23497,1685.4\nCUB,\"Cuba\",\"Latin America & Caribbean\",\"Upper middle income\",77.413,,2829.3\nCUW,\"Curacao\",\"Latin America & Caribbean\",\"High income\",76.492,28660,\nCYM,\"Cayman Islands\",\"Latin America & Caribbean\",\"High income\",79.052,77477,\nCYP,\"Cyprus\",\"Europe & Central Asia\",\"High income\",81.454,45454,3128.2\nCZE,\"Czechia\",\"Europe & Central Asia\",\"High income\",79.229,47764,3422.4\nDEU,\"Germany\",\"Europe & Central Asia\",\"High income\",81.293,62950,6779.5\nDJI,\"Djibouti\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Lower middle income\",64.381,5809,130.3\nDMA,\"Dominica\",\"Latin America & Caribbean\",\"Upper middle income\",71.305,17619,786.0\nDNK,\"Denmark\",\"Europe & Central Asia\",\"High income\",81.451,66759,6171.2\nDOM,\"Dominican Republic\",\"Latin America & Caribbean\",\"Upper middle income\",73.112,21451,863.4\nDZA,\"Algeria\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Upper middle income\",75.682,15199,752.6\nECU,\"Ecuador\",\"Latin America & Caribbean\",\"Upper middle income\",77.286,13870,979.5\nEGY,\"Egypt, Arab Rep.\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Lower middle income\",71.213,15027,614.7\nERI,\"Eritrea\",\"Sub-Saharan Africa\",\"Low income\",67.306,,91.4\nESP,\"Spain\",\"Europe & Central Asia\",\"High income\",83.832,46896,4076.0\nEST,\"Estonia\",\"Europe & Central Asia\",\"High income\",78.646,42215,2702.3\nETH,\"Ethiopia\",\"Sub-Saharan Africa\",\"Low income\",65.741,2438,72.7\nFIN,\"Finland\",\"Europe & Central Asia\",\"High income\",81.983,56922,4821.3\nFJI,\"Fiji\",\"East Asia & Pacific\",\"Upper middle income\",67.009,13056,566.1\nFRA,\"France\",\"Europe & Central Asia\",\"High income\",82.827,53449,5719.3\nFRO,\"Faroe Islands\",\"Europe & Central Asia\",\"High income\",82.391,68137,\nFSM,\"Micronesia, Fed. Sts.\",\"East Asia & Pacific\",\"Upper middle income\",66.196,3965,391.6\nGAB,\"Gabon\",\"Sub-Saharan Africa\",\"Upper middle income\",67.337,19491,441.5\nGBR,\"United Kingdom\",\"Europe & Central Asia\",\"High income\",81.369,53374,4983.8\nGEO,\"Georgia\",\"Europe & Central Asia\",\"Upper middle income\",74.165,18187,1201.7\nGHA,\"Ghana\",\"Sub-Saharan Africa\",\"Lower middle income\",64.455,6508,195.4\nGIB,\"Gibraltar\",\"Europe & Central Asia\",\"High income\",83.183,,\nGIN,\"Guinea\",\"Sub-Saharan Africa\",\"Lower middle income\",59.379,3557,127.0\nGMB,\"Gambia, The\",\"Sub-Saharan Africa\",\"Low income\",64.427,2751,76.2\nGNB,\"Guinea-Bissau\",\"Sub-Saharan Africa\",\"Low income\",62.161,2442,149.6\nGNQ,\"Equatorial Guinea\",\"Sub-Saharan Africa\",\"Upper middle income\",62.297,18447,539.5\nGRC,\"Greece\",\"Europe & Central Asia\",\"High income\",81.639,33503,2590.8\nGRD,\"Grenada\",\"Latin America & Caribbean\",\"Upper middle income\",74.971,17037,811.0\nGRL,\"Greenland\",\"Europe & Central Asia\",\"High income\",71.409,68535,\nGTM,\"Guatemala\",\"Latin America & Caribbean\",\"Upper middle income\",71.639,11466,664.1\nGUM,\"Guam\",\"East Asia & Pacific\",\"High income\",76.645,,\nGUY,\"Guyana\",\"Latin America & Caribbean\",\"High income\",69.067,13402,649.2\nHKG,\"Hong Kong SAR, China\",\"East Asia & Pacific\",\"High income\",85.156,65388,\nHND,\"Honduras\",\"Latin America & Caribbean\",\"Lower middle income\",72.124,6264,424.8\nHRV,\"Croatia\",\"Europe & Central Asia\",\"High income\",78.224,35123,2223.3\nHTI,\"Haiti\",\"Latin America & Caribbean\",\"Lower middle income\",64.328,3362,124.7\nHUN,\"Hungary\",\"Europe & Central Asia\",\"High income\",76.320,37663,2224.3\nIDN,\"Indonesia\",\"East Asia & Pacific\",\"Upper middle income\",70.349,12758,345.0\nIMN,\"Isle of Man\",\"Europe & Central Asia\",\"High income\",80.740,,\nIND,\"India\",\"South Asia\",\"Lower middle income\",70.746,7702,211.2\nIRL,\"Ireland\",\"Europe & Central Asia\",\"High income\",82.702,96206,6135.2\nIRN,\"Iran, Islamic Rep.\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Upper middle income\",76.855,14841,832.2\nIRQ,\"Iraq\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Upper middle income\",71.245,14910,522.0\nISL,\"Iceland\",\"Europe & Central Asia\",\"High income\",83.163,65995,5227.3\nISR,\"Israel\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",82.805,44492,3114.7\nITA,\"Italy\",\"Europe & Central Asia\",\"High income\",83.498,49691,4014.2\nJAM,\"Jamaica\",\"Latin America & Caribbean\",\"Upper middle income\",71.532,10816,702.8\nJOR,\"Jordan\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Upper middle income\",76.865,10168,666.9\nJPN,\"Japan\",\"East Asia & Pacific\",\"High income\",84.356,46055,4679.3\nKAZ,\"Kazakhstan\",\"Europe & Central Asia\",\"Upper middle income\",73.658,33298,799.7\nKEN,\"Kenya\",\"Sub-Saharan Africa\",\"Lower middle income\",62.939,5172,204.8\nKGZ,\"Kyrgyz Republic\",\"Europe & Central Asia\",\"Lower middle income\",71.600,6088,229.0\nKHM,\"Cambodia\",\"East Asia & Pacific\",\"Lower middle income\",70.127,6449,311.3\nKIR,\"Kiribati\",\"East Asia & Pacific\",\"Lower middle income\",65.866,2927,280.8\nKNA,\"St. Kitts and Nevis\",\"Latin America & Caribbean\",\"High income\",71.540,31512,1685.2\nKOR,\"Korea, Rep.\",\"East Asia & Pacific\",\"High income\",83.227,49791,3578.4\nKWT,\"Kuwait\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",81.970,51381,2627.5\nLAO,\"Lao PDR\",\"East Asia & Pacific\",\"Lower middle income\",67.911,8075,202.1\nLBN,\"Lebanon\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Lower middle income\",78.208,15660,1887.4\nLBR,\"Liberia\",\"Sub-Saharan Africa\",\"Low income\",61.232,1576,148.0\nLBY,\"Libya\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Upper middle income\",72.941,14337,898.4\nLCA,\"St. Lucia\",\"Latin America & Caribbean\",\"Upper middle income\",72.249,22445,802.8\nLIE,\"Liechtenstein\",\"Europe & Central Asia\",\"High income\",84.161,,8282.4\nLKA,\"Sri Lanka\",\"South Asia\",\"Upper middle income\",76.698,14637,508.2\nLSO,\"Lesotho\",\"Sub-Saharan Africa\",\"Lower middle income\",55.249,2773,560.0\nLTU,\"Lithuania\",\"Europe & Central Asia\",\"High income\",76.283,43079,2815.9\nLUX,\"Luxembourg\",\"Europe & Central Asia\",\"High income\",82.639,132725,6700.7\nLVA,\"Latvia\",\"Europe & Central Asia\",\"High income\",75.388,35208,2202.7\nMAC,\"Macao SAR, China\",\"East Asia & Pacific\",\"High income\",83.929,133454,\nMAF,\"St. Martin (French part)\",\"Latin America & Caribbean\",\"High income\",80.078,,\nMAR,\"Morocco\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Lower middle income\",74.245,8768,410.0\nMCO,\"Monaco\",\"Europe & Central Asia\",\"High income\",86.151,,8562.6\nMDA,\"Moldova\",\"Europe & Central Asia\",\"Upper middle income\",70.181,14621,864.7\nMDG,\"Madagascar\",\"Sub-Saharan Africa\",\"Low income\",63.504,1708,50.0\nMDV,\"Maldives\",\"South Asia\",\"Upper middle income\",79.707,21856,1731.3\nMEX,\"Mexico\",\"Latin America & Caribbean\",\"Upper middle income\",74.530,21704,1111.4\nMHL,\"Marshall Islands\",\"East Asia & Pacific\",\"Upper middle income\",66.047,6406,785.8\nMKD,\"North Macedonia\",\"Europe & Central Asia\",\"Upper middle income\",76.602,21767,1412.9\nMLI,\"Mali\",\"Sub-Saharan Africa\",\"Low income\",59.217,2916,91.1\nMLT,\"Malta\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",82.659,53393,4671.7\nMMR,\"Myanmar\",\"East Asia & Pacific\",\"Lower middle income\",66.457,6563,232.6\nMNE,\"Montenegro\",\"Europe & Central Asia\",\"Upper middle income\",76.683,24585,2045.1\nMNG,\"Mongolia\",\"East Asia & Pacific\",\"Upper middle income\",71.053,15791,618.3\nMNP,\"Northern Mariana Islands\",\"East Asia & Pacific\",\"High income\",77.844,,\nMOZ,\"Mozambique\",\"Sub-Saharan Africa\",\"Low income\",61.306,1529,109.7\nMRT,\"Mauritania\",\"Sub-Saharan Africa\",\"Lower middle income\",67.640,6162,173.5\nMUS,\"Mauritius\",\"Sub-Saharan Africa\",\"Upper middle income\",74.236,25958,1346.8\nMWI,\"Malawi\",\"Sub-Saharan Africa\",\"Low income\",64.995,1687,92.1\nMYS,\"Malaysia\",\"East Asia & Pacific\",\"Upper middle income\",75.900,31301,1111.0\nNAM,\"Namibia\",\"Sub-Saharan Africa\",\"Lower middle income\",63.546,10813,851.2\nNCL,\"New Caledonia\",\"East Asia & Pacific\",\"High income\",77.262,,\nNER,\"Niger\",\"Sub-Saharan Africa\",\"Low income\",60.031,1605,80.6\nNGA,\"Nigeria\",\"Sub-Saharan Africa\",\"Lower middle income\",53.009,8362,160.1\nNIC,\"Nicaragua\",\"Latin America & Caribbean\",\"Lower middle income\",73.764,6757,508.4\nNLD,\"Netherlands\",\"Europe & Central Asia\",\"High income\",82.112,67848,6217.2\nNOR,\"Norway\",\"Europe & Central Asia\",\"High income\",82.959,90773,7432.1\nNPL,\"Nepal\",\"South Asia\",\"Lower middle income\",69.299,4608,189.4\nNRU,\"Naoero\",\"East Asia & Pacific\",\"High income\",61.393,11185,1232.9\nNZL,\"New Zealand\",\"East Asia & Pacific\",\"High income\",82.056,47392,3887.6\nOMN,\"Oman\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",79.946,38292,1417.9\nPAK,\"Pakistan\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Lower middle income\",66.729,5296,143.4\nPAN,\"Panama\",\"Latin America & Caribbean\",\"High income\",78.514,33164,2702.0\nPER,\"Peru\",\"Latin America & Caribbean\",\"Upper middle income\",76.275,15461,709.3\nPHL,\"Philippines\",\"East Asia & Pacific\",\"Upper middle income\",69.680,9452,371.8\nPLW,\"Palau\",\"East Asia & Pacific\",\"High income\",68.982,19686,2219.5\nPNG,\"Papua New Guinea\",\"East Asia & Pacific\",\"Lower middle income\",65.331,4302,94.4\nPOL,\"Poland\",\"Europe & Central Asia\",\"High income\",77.905,38182,2292.1\nPRI,\"Puerto Rico (US)\",\"Latin America & Caribbean\",\"High income\",81.438,41656,\nPRK,\"Korea, Dem. People's Rep.\",\"East Asia & Pacific\",\"Low income\",72.928,,\nPRT,\"Portugal\",\"Europe & Central Asia\",\"High income\",81.676,40188,3584.1\nPRY,\"Paraguay\",\"Latin America & Caribbean\",\"Upper middle income\",73.668,15319,1013.2\nPSE,\"West Bank and Gaza\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Lower middle income\",75.811,6270,565.0\nPYF,\"French Polynesia\",\"East Asia & Pacific\",\"High income\",83.195,,\nQAT,\"Qatar\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",82.945,113161,3228.7\nROU,\"Romania\",\"Europe & Central Asia\",\"High income\",75.607,36399,1912.9\nRUS,\"Russian Federation\",\"Europe & Central Asia\",\"High income\",73.084,37319,1759.4\nRWA,\"Rwanda\",\"Sub-Saharan Africa\",\"Low income\",66.691,2754,114.8\nSAU,\"Saudi Arabia\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"High income\",78.313,62648,3030.8\nSDN,\"Sudan\",\"Sub-Saharan Africa\",\"Low income\",65.803,3626,185.4\nSEN,\"Senegal\",\"Sub-Saharan Africa\",\"Lower middle income\",67.668,4071,164.0\nSGP,\"Singapore\",\"East Asia & Pacific\",\"High income\",83.595,120678,4670.5\nSLB,\"Solomon Islands\",\"East Asia & Pacific\",\"Lower middle income\",69.981,2662,111.5\nSLE,\"Sierra Leone\",\"Sub-Saharan Africa\",\"Low income\",59.593,2853,154.3\nSLV,\"El Salvador\",\"Latin America & Caribbean\",\"Upper middle income\",71.725,10544,859.4\nSMR,\"San Marino\",\"Europe & Central Asia\",\"High income\",85.257,60171,4686.1\nSOM,\"Somalia, Fed. Rep.\",\"Sub-Saharan Africa\",\"Low income\",57.249,1491,36.1\nSRB,\"Serbia\",\"Europe & Central Asia\",\"Upper middle income\",75.937,21541,1701.7\nSSD,\"South Sudan\",\"Sub-Saharan Africa\",\"Low income\",58.129,,67.8\nSTP,\"Sao Tome and Principe\",\"Sub-Saharan Africa\",\"Lower middle income\",68.043,5702,255.2\nSUR,\"Suriname\",\"Latin America & Caribbean\",\"Upper middle income\",71.773,22967,1657.5\nSVK,\"Slovak Republic\",\"Europe & Central Asia\",\"High income\",77.666,37194,2350.4\nSVN,\"Slovenia\",\"Europe & Central Asia\",\"High income\",81.529,44578,3642.6\nSWE,\"Sweden\",\"Europe & Central Asia\",\"High income\",83.110,61071,6267.4\nSWZ,\"Eswatini\",\"Sub-Saharan Africa\",\"Lower middle income\",59.850,10100,756.4\nSXM,\"Sint Maarten (Dutch part)\",\"Latin America & Caribbean\",\"High income\",75.680,45997,\nSYC,\"Seychelles\",\"Sub-Saharan Africa\",\"High income\",74.046,34346,1207.5\nSYR,\"Syrian Arab Republic\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Low income\",70.970,4928,147.9\nTCA,\"Turks and Caicos Islands\",\"Latin America & Caribbean\",\"High income\",77.691,30611,\nTCD,\"Chad\",\"Sub-Saharan Africa\",\"Low income\",52.993,2605,79.6\nTGO,\"Togo\",\"Sub-Saharan Africa\",\"Lower middle income\",61.061,2863,130.9\nTHA,\"Thailand\",\"East Asia & Pacific\",\"Upper middle income\",77.197,21280,756.8\nTJK,\"Tajikistan\",\"Europe & Central Asia\",\"Lower middle income\",70.962,3650,240.4\nTKM,\"Turkmenistan\",\"Europe & Central Asia\",\"Upper middle income\",69.405,15081,1007.8\nTLS,\"Timor-Leste\",\"East Asia & Pacific\",\"Lower middle income\",66.496,5103,227.5\nTON,\"Tonga\",\"East Asia & Pacific\",\"Upper middle income\",72.292,6860,330.6\nTTO,\"Trinidad and Tobago\",\"Latin America & Caribbean\",\"High income\",72.836,33749,1868.7\nTUN,\"Tunisia\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Lower middle income\",75.599,13244,752.8\nTUR,\"Turkiye\",\"Europe & Central Asia\",\"Upper middle income\",77.737,28741,1200.4\nTUV,\"Tuvalu\",\"East Asia & Pacific\",\"Upper middle income\",66.109,5516,1159.9\nTZA,\"Tanzania\",\"Sub-Saharan Africa\",\"Lower middle income\",66.007,3485,112.1\nUGA,\"Uganda\",\"Sub-Saharan Africa\",\"Low income\",66.354,2689,98.2\nUKR,\"Ukraine\",\"Europe & Central Asia\",\"Upper middle income\",73.920,17637,953.7\nURY,\"Uruguay\",\"Latin America & Caribbean\",\"High income\",77.503,30011,2382.5\nUSA,\"United States\",\"North America\",\"High income\",78.788,69121,10550.2\nUZB,\"Uzbekistan\",\"Europe & Central Asia\",\"Lower middle income\",72.093,9169,413.1\nVCT,\"St. Vincent and the Grenadines\",\"Latin America & Caribbean\",\"Upper middle income\",70.994,16365,653.0\nVEN,\"Venezuela, RB\",\"Latin America & Caribbean\",\"Lower middle income\",72.766,,79.0\nVGB,\"British Virgin Islands\",\"Latin America & Caribbean\",\"High income\",76.845,,\nVIR,\"Virgin Islands (U.S.)\",\"Latin America & Caribbean\",\"High income\",79.668,45633,\nVNM,\"Viet Nam\",\"East Asia & Pacific\",\"Upper middle income\",74.211,11629,548.6\nVUT,\"Vanuatu\",\"East Asia & Pacific\",\"Lower middle income\",70.783,3987,115.9\nWSM,\"Samoa\",\"East Asia & Pacific\",\"Upper middle income\",70.269,7034,374.9\nXKX,\"Kosovo\",\"Europe & Central Asia\",\"Upper middle income\",77.249,11774,\nYEM,\"Yemen, Rep.\",\"Middle East, North Africa, Afghanistan & Pakistan\",\"Low income\",66.567,,202.3\nZAF,\"South Africa\",\"Sub-Saharan Africa\",\"Upper middle income\",66.071,14353,1101.9\nZMB,\"Zambia\",\"Sub-Saharan Africa\",\"Lower middle income\",62.914,3592,227.0\nZWE,\"Zimbabwe\",\"Sub-Saharan Africa\",\"Lower middle income\",61.060,4994,90.0";
+
+// ---------------------------------------------------------------------------
+// Problem Set 7 solutions: content only. The layout, the step-by-step reveal
+// and the R engine are in ../assets/seminar.js.
+// Maths is written in TeX between \( \) or \[ \] and typeset by KaTeX.
+// All numbers below come from this dataset (checked in Python statsmodels; robust SEs are HC3, as vcovHC() in R).
+// ---------------------------------------------------------------------------
+
+window.SEMINAR = {
+  id: "ps7",
+  eyebrow: "Week 7 · Problem Set 7 · Solutions",
+  title: "Linear Regression with Real Data",
+  lead: "Worked solutions, for the Week 8 seminar. Do people live longer in richer countries, and by how much? Each question has an R step that runs the code in your browser, followed by solution boxes that reveal the answer one step at a time: the result, the formula, the numbers, and what it means.",
+  note: "<b>How it works.</b> The World Bank data are already loaded as <code>wdi</code> (217 economies, regional aggregates removed). In RStudio, download them with the <code>WDI</code> code in the problem set, or use the file <a href=\"wdi_health_2019.csv\">wdi_health_2019.csv</a> on this page and Moodle (<code>wdi &lt;- read.csv(\"wdi_health_2019.csv\")</code>). R takes a minute to start the first time; the status at the top turns green when it is ready. Run the R steps in order: later steps use objects created in earlier ones. In a solution box, click <b>Show step 1</b>, then <b>Next step</b>, or click the box and use <b>→</b> / <b>Page Down</b>. <b>Presentation mode</b> makes everything larger for the projector.",
+  footer: "ECN7020 · Problem Set 7 · Solutions · Week 8 seminar",
+  readyText: "R is ready, with the World Bank data loaded as wdi. Click Run on the R steps.",
+  progress: false,
+  packages: ["sandwich", "lmtest"],
+  setup: "wdi <- read.csv(text = \"" + WDI_CSV.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\", stringsAsFactors = FALSE)\ninvisible(NULL)",
+  items: [
+
+    // ================================================================== Question 1
+    { type: "section", eyebrow: "Question 1", title: "Get the Data",
+      text: "<p>World Development Indicators (World Bank), 2019, the last year before COVID-19: life expectancy at birth (years), GDP per head at purchasing power parity (constant 2021 international $) and health spending per head (PPP, current international $), with each country's region.</p>" +
+        "<p>In RStudio:</p><pre>library(WDI)\nwdi &lt;- WDI(indicator = c(lifeexp = \"SP.DYN.LE00.IN\",\n                         gdppc   = \"NY.GDP.PCAP.PP.KD\",\n                         health  = \"SH.XPD.CHEX.PP.CD\"),\n           start = 2019, end = 2019, extra = TRUE)\nwdi &lt;- subset(wdi, region != \"Aggregates\")</pre><p>On this page the result is already loaded as <code>wdi</code>. The World Bank revises its data, so a fresh download can differ slightly from the numbers here.</p>" },
+
+    { type: "r", title: "1. Load, count and describe", plot: { width: 680, height: 420 },
+      desc: "Count the countries with data on both life expectancy and GDP per head, list the ones without GDP per head, summarise both variables and draw the scatter plot. Find the country with the lowest life expectancy.",
+      h1: "Keep the rows where neither variable is missing, then use the usual summary functions. For the lowest value, sort the data or use which.min().",
+      h2: "<code>subset(wdi, !is.na(lifeexp) &amp; !is.na(gdppc))</code>; <code>nrow()</code>; <code>summary()</code>, <code>sd()</code>; <code>plot(lifeexp ~ gdppc, data = d)</code>; <code>d[which.min(d$lifeexp), ]</code>.",
+      h3: `nrow(wdi)                                      # 217 economies
+d <- subset(wdi, !is.na(lifeexp) & !is.na(gdppc))
+nrow(d)                                        # 199 with both variables
+wdi$country[is.na(wdi$gdppc)]                  # the 18 without GDP per head
+
+summary(d[, c("lifeexp", "gdppc")])
+sd(d$lifeexp); sd(d$gdppc)
+
+plot(lifeexp ~ gdppc, data = d, pch = 19, col = "#2A5A88",
+     xlab = "GDP per head ($, PPP)", ylab = "Life expectancy (years)")
+
+head(d[order(d$lifeexp), c("country", "lifeexp", "gdppc")], 4)`,
+      h3note: "199 of the 217 economies have both variables. Life expectancy: mean 72.7, median 73.8, SD 8.0 years. GDP per head: mean $26,353, median $16,761, SD $26,295. The lowest life expectancy is the Central African Republic, 31.5 years; next come Chad (53.0) and Nigeria (53.0).",
+      code: "# Keep countries with both variables, then describe them\n" },
+
+    { type: "solution", label: "1(a)", title: "Who is in the data?",
+      question: "How many countries have data on both life expectancy and GDP per head? Which kinds of countries are missing?",
+      steps: [
+        { k: "Count", b: "<p>217 economies; 199 have both life expectancy and GDP per head.</p>" },
+        { k: "Who is missing", b: "<p>The 18 without GDP per head are mostly small territories (Gibraltar, Guam, the Isle of Man, Monaco and others) and countries in conflict or cut off from international statistics (Eritrea, North Korea, South Sudan, Venezuela, Yemen, Cuba).</p>" },
+        { k: "Why it matters", b: "<span class='answer-line'>They are not missing at random: our results describe countries with working statistical systems.</span>" },
+      ] },
+
+    { type: "solution", label: "1(b)", title: "Describe the relationship",
+      question: "Report the mean, median and standard deviation of both variables, and draw a scatter plot of life expectancy against GDP per head. Describe the relationship in two sentences.",
+      steps: [
+        { k: "The numbers", b: "<table class='ptab'><tr><th></th><th>Mean</th><th>Median</th><th>SD</th></tr><tr><td>Life expectancy (years)</td><td>72.7</td><td>73.8</td><td>8.0</td></tr><tr><td>GDP per head ($, PPP)</td><td>26,353</td><td>16,761</td><td>26,295</td></tr></table>" },
+        { k: "The shape", b: "<span class='answer-line'>Life expectancy rises steeply with income among poor countries and flattens out among rich ones: strongly positive, but curved.</span>" },
+        { k: "The skew", b: "<p>GDP per head is very right-skewed: the mean is far above the median, pulled up by a few very rich countries (Luxembourg, Macao, Singapore, Qatar).</p>" },
+      ] },
+
+    { type: "solution", label: "1(c)", title: "An outlier",
+      question: "Which country has the lowest life expectancy? Is the value plausible? Look it up on the World Bank website and say what you would do with it.",
+      steps: [
+        { k: "The value", b: "<p>The Central African Republic: 31.5 years, more than 20 years below the next lowest (Chad, 53.0; Nigeria, 53.0).</p>" },
+        { k: "Is it plausible?", b: "<p>It is far below every other poor country, and below the country's own figures for earlier years. The World Bank takes life expectancy from the UN population estimates: check it at the source before relying on it.</p>" },
+        { k: "What to do", b: "<span class='answer-line'>Keep it, but report how much the results depend on it. Question 4(c) does this.</span>" },
+      ] },
+
+    // ================================================================== Question 2
+    { type: "section", eyebrow: "Question 2", title: "A First Regression",
+      text: "<p>Regress life expectancy on GDP per head, measured in thousands of dollars.</p>" },
+
+    { type: "r", title: "2. Life expectancy on GDP per head, in levels", plot: { width: 680, height: 420 },
+      desc: "Fit <code>lm(lifeexp ~ I(gdppc / 1000), data = d)</code>, read the slope and R², and plot the residuals against the fitted values.",
+      h1: "I(gdppc / 1000) measures income in thousands of dollars, so the slope is the change in life expectancy per $1,000.",
+      h2: "<code>summary(m1)</code> for the coefficients and R²; <code>plot(m1, which = 1)</code> for the residual plot.",
+      h3: `m1 <- lm(lifeexp ~ I(gdppc / 1000), data = d)
+summary(m1)
+plot(m1, which = 1)                            # residuals against fitted values`,
+      h3note: "ŷ = 67.03 + 0.216 × GDP per head ($ thousands); R² = 0.506. The residual plot shows a clear curve: large negative residuals for the poorest countries, positive ones in the middle.",
+      code: "# Regress life expectancy on GDP per head ($ thousands)\n" },
+
+    { type: "solution", label: "2(a)", title: "Read the slope and R²",
+      question: "Interpret the slope and R².",
+      steps: [
+        { k: "The fitted line", b: String.raw`\[ \widehat{\text{lifeexp}} = 67.0 + 0.216 \times \frac{\text{GDP per head}}{1{,}000} \]` },
+        { k: "The slope", b: "<span class='answer-line'>Across countries, $1,000 more GDP per head is associated with life expectancy 0.22 years (about 2.6 months) higher, on average.</span>" },
+        { k: "R²", b: String.raw`<p>\(R^2 = 0.506\): income accounts for about half of the variation in life expectancy across countries.</p>` },
+      ] },
+
+    { type: "solution", label: "2(b)", title: "What the residual plot shows",
+      question: "Plot the residuals against the fitted values. Which OLS assumption looks doubtful, and why?",
+      steps: [
+        { k: "What we see", b: "<p>The residuals form a curve: strongly negative for the poorest countries, positive in the middle, and back near zero for the richest. The straight line overpredicts life expectancy in the poorest countries and underpredicts it for middle-income ones.</p>" },
+        { k: "The assumption", b: String.raw`<span class="answer-line">Assumption 1, linear in parameters: \(Y = \beta_0 + \beta_1 X + u\) is not the right model when X is GDP per head in dollars. The true relationship is curved.</span>` },
+      ] },
+
+    // ================================================================== Question 3
+    { type: "section", eyebrow: "Question 3", title: "Logs",
+      text: String.raw`<p>Replace GDP per head by its natural log. In \(Y = b_0 + b_1 \log(X)\), a 1% rise in X goes with a change in Y of about \(b_1 / 100\).</p>` },
+
+    { type: "r", title: "3. Life expectancy on log GDP per head", plot: { width: 680, height: 420 },
+      desc: "Create <code>lgdp &lt;- log(gdppc)</code>, fit <code>lm(lifeexp ~ lgdp, data = d)</code>, and compare R² and the residual plot with Question 2.",
+      h1: "log() is the natural log. Add the new variable to d so later steps can use it.",
+      h2: "<code>d$lgdp &lt;- log(d$gdppc)</code>; <code>summary(m2)</code>; <code>plot(m2, which = 1)</code>; for a doubling, <code>coef(m2)[2] * log(2)</code>.",
+      h3: `d$lgdp <- log(d$gdppc)
+m2 <- lm(lifeexp ~ lgdp, data = d)
+summary(m2)
+coef(m2)["lgdp"] * log(2)                      # twice as rich
+plot(m2, which = 1)
+
+plot(lifeexp ~ lgdp, data = d, pch = 19, col = "#2A5A88",
+     xlab = "log GDP per head", ylab = "Life expectancy (years)")
+abline(m2, col = "#E36533", lwd = 2)`,
+      h3note: "ŷ = 15.73 + 5.916 × log(GDP per head); R² = 0.715. Twice as rich: 5.916 × log 2 = 4.1 years. The curve in the residuals has gone; the spread is larger among the poorer countries.",
+      code: "# Use the log of GDP per head\n" },
+
+    { type: "solution", label: "3(a)", title: "Read the slope in logs",
+      question: "Interpret the slope. By how many years does life expectancy differ between two countries, one twice as rich as the other?",
+      steps: [
+        { k: "The fitted line", b: String.raw`\[ \widehat{\text{lifeexp}} = 15.7 + 5.92 \times \log(\text{GDP per head}) \]` },
+        { k: "A 1% difference", b: String.raw`\[ \frac{b_1}{100} = \frac{5.92}{100} = 0.059 \text{ years} \]<p>A country with 1% higher GDP per head has life expectancy about 0.06 years higher, on average.</p>` },
+        { k: "Twice as rich", b: String.raw`<p>Twice as rich means \(\log(2X) - \log(X) = \log 2 = 0.693\) higher:</p>\[ b_1 \times \log 2 = 5.92 \times 0.693 = 4.1 \text{ years} \]<span class="answer-line">A country twice as rich as another has a life expectancy about 4 years higher, on average.</span>` },
+      ] },
+
+    { type: "solution", label: "3(b)", title: "Which model?",
+      question: "Compare R² and the residual plot with Question 2. Which model would you use, and why?",
+      steps: [
+        { k: "Compare", b: String.raw`<p>\(R^2\) rises from 0.506 to 0.715, and the curve in the residuals disappears.</p>` },
+        { k: "Choose", b: "<span class='answer-line'>The log model: each doubling of income goes with a similar gain in years, whether a country is poor or rich.</span><p>In levels, the same $1,000 would mean a lot to a poor country and almost nothing to a rich one.</p>" },
+      ] },
+
+    // ================================================================== Question 4
+    { type: "section", eyebrow: "Question 4", title: "Inference and Heteroskedasticity",
+      text: "<p>Use the log model of Question 3. In RStudio, <code>library(AER)</code> loads the two packages for robust standard errors; on this page they are <code>lmtest</code> and <code>sandwich</code>.</p>" },
+
+    { type: "r", title: "4(a) and (b). Test, interval and robust standard errors",
+      desc: "Test H₀: β₁ = 0 and give a 95% confidence interval for the slope. Then compute robust standard errors and compare.",
+      h1: "summary() gives the t statistic; confint() the interval. Robust standard errors keep the same coefficients and change only the standard errors.",
+      h2: "<code>confint(m2)</code>; <code>coeftest(m2, vcov = vcovHC(m2))</code>; <code>coefci(m2, vcov = vcovHC(m2))</code> for the robust interval.",
+      h3: `summary(m2)$coefficients                      # estimate, SE, t, p
+confint(m2)                                    # 95% interval
+
+library(lmtest); library(sandwich)             # in RStudio: library(AER)
+coeftest(m2, vcov = vcovHC(m2))                # robust standard errors
+coefci(m2, vcov = vcovHC(m2))                  # robust 95% interval`,
+      h3note: "Slope 5.916, SE 0.266, t = 22.2, p &lt; 0.001; 95% interval 5.39 to 6.44. Robust SE 0.347, robust interval 5.23 to 6.60.",
+      code: "# Test the slope, then robust standard errors\n" },
+
+    { type: "solution", label: "4(a)", title: "Test the slope",
+      question: String.raw`Test \(H_0: \beta_1 = 0\) in the model of Question 3, and give a 95% confidence interval for the slope.`,
+      steps: [
+        { k: "Hypotheses", b: String.raw`<p>\(H_0: \beta_1 = 0\) (no relationship between log income and life expectancy) against \(H_1: \beta_1 \neq 0\); \(\alpha = 0.05\).</p>` },
+        { k: "Test statistic", b: String.raw`\[ t = \frac{b_1 - 0}{\text{SE}(b_1)} = \frac{5.916}{0.266} = 22.2 \]` },
+        { k: "Decision", b: String.raw`<p>With 197 degrees of freedom the 5% critical value is 1.97; 22.2 is far beyond it (\(p < 0.001\)).</p><span class="answer-line">Reject H₀: life expectancy is clearly related to log income.</span>` },
+        { k: "95% interval", b: String.raw`\[ b_1 \pm 1.97 \times \text{SE}(b_1) = 5.92 \pm 1.97 \times 0.266 = 5.39 \text{ to } 6.44 \]` },
+      ] },
+
+    { type: "solution", label: "4(b)", title: "Robust standard errors",
+      question: "Compute robust standard errors. How do they compare with the usual ones? Does your conclusion change?",
+      steps: [
+        { k: "The numbers", b: "<p>Robust SE 0.347 against the usual 0.266: about 30% larger. Robust 95% interval: 5.23 to 6.60.</p>" },
+        { k: "Why", b: String.raw`<p>The residual plot shows more spread among poor countries than among rich ones: heteroskedasticity, so assumption 5, \(\text{Var}(u \mid X) = \sigma^2\), fails and the usual standard error is too small.</p>` },
+        { k: "Conclusion", b: String.raw`\[ t = \frac{5.92}{0.347} = 17.0 \]<span class="answer-line">The conclusion does not change: the slope is still far from zero.</span>` },
+      ] },
+
+    { type: "r", title: "4(c). Without the Central African Republic",
+      desc: "Refit the log model without the country from Question 1(c). Compare the slope and both standard errors.",
+      h1: "Drop one row with subset(), refit, and compute both standard errors again.",
+      h2: "<code>subset(d, country != \"Central African Republic\")</code>.",
+      h3: `m2b <- lm(lifeexp ~ lgdp, data = subset(d, country != "Central African Republic"))
+summary(m2b)$coefficients
+summary(m2b)$r.squared
+coeftest(m2b, vcov = vcovHC(m2b))`,
+      h3note: "Without the Central African Republic: slope 5.648, SE 0.243, robust SE 0.222; R² = 0.734.",
+      code: "# Refit without the Central African Republic\n" },
+
+    { type: "solution", label: "4(c)", title: "One country matters",
+      question: "Refit the model without the country from Question 1(c). What happens to the slope and to the two standard errors? What does this tell you?",
+      steps: [
+        { k: "Compare", b: "<table class='ptab'><tr><th></th><th>All 199</th><th>Without CAR</th></tr><tr><td>Slope</td><td>5.92</td><td>5.65</td></tr><tr><td>Usual SE</td><td>0.266</td><td>0.243</td></tr><tr><td>Robust SE</td><td>0.347</td><td>0.222</td></tr><tr><td>R²</td><td>0.715</td><td>0.734</td></tr></table>" },
+        { k: "What changed", b: "<p>The slope falls by 5%, and the gap between the usual and the robust standard errors almost disappears: most of it came from this single country.</p>" },
+        { k: "Lesson", b: "<span class='answer-line'>One extreme point among 199 changes our view of the slope and of the spread of the errors. Always check outliers, and report results with and without them.</span>" },
+      ] },
+
+    // ================================================================== Question 5
+    { type: "section", eyebrow: "Question 5", title: "A Dummy Variable and Omitted Variable Bias",
+      text: "<p>Create a dummy <code>ssa</code> equal to 1 for countries in Sub-Saharan Africa and 0 otherwise, and add it to the log model.</p>" },
+
+    { type: "r", title: "5. Add the Sub-Saharan Africa dummy", plot: { width: 680, height: 420 },
+      desc: "Fit <code>lm(lifeexp ~ lgdp + ssa, data = d)</code>, compare the coefficient on <code>lgdp</code> with Question 3, and compute <code>cor(d$lgdp, d$ssa)</code>.",
+      h1: "A dummy is a 0/1 variable. as.numeric() turns TRUE/FALSE into 1/0.",
+      h2: "<code>d$ssa &lt;- as.numeric(d$region == \"Sub-Saharan Africa\")</code>; <code>summary(m3)</code>; <code>cor()</code>.",
+      h3: `d$ssa <- as.numeric(d$region == "Sub-Saharan Africa")
+sum(d$ssa)                                     # 46 countries
+m3 <- lm(lifeexp ~ lgdp + ssa, data = d)
+summary(m3)
+coeftest(m3, vcov = vcovHC(m3))
+cor(d$lgdp, d$ssa)
+
+plot(lifeexp ~ lgdp, data = d, pch = 19, col = ifelse(d$ssa == 1, "#E36533", "#2A5A88"),
+     xlab = "log GDP per head", ylab = "Life expectancy (years)")
+abline(coef(m3)[1], coef(m3)[2], col = "#2A5A88", lwd = 2)
+abline(coef(m3)[1] + coef(m3)[3], coef(m3)[2], col = "#E36533", lwd = 2)`,
+      h3note: "ŷ = 28.83 + 4.686 × lgdp − 5.407 × ssa; SE of ssa 0.83 (robust 0.90); R² = 0.766. The correlation between lgdp and ssa is −0.62. The plot shows two parallel lines, 5.4 years apart.",
+      code: "# Add a dummy for Sub-Saharan Africa\n" },
+
+    { type: "solution", label: "5(a)", title: "Read the dummy",
+      question: "Interpret the coefficient on ssa.",
+      steps: [
+        { k: "The fitted line", b: String.raw`\[ \widehat{\text{lifeexp}} = 28.8 + 4.69 \times \text{lgdp} - 5.41 \times \text{ssa} \]` },
+        { k: "Two parallel lines", b: String.raw`<p>Outside Sub-Saharan Africa (ssa = 0): \(28.8 + 4.69 \times \text{lgdp}\). Inside (ssa = 1): \(23.4 + 4.69 \times \text{lgdp}\). Same slope, intercepts 5.4 apart.</p>` },
+        { k: "Interpret", b: "<span class='answer-line'>Comparing countries with the same GDP per head, life expectancy in Sub-Saharan Africa is 5.4 years lower, on average (SE 0.83; robust SE 0.90).</span>" },
+      ] },
+
+    { type: "solution", label: "5(b)", title: "Omitted variable bias",
+      question: "How does the coefficient on lgdp change? Explain the direction of the change, using the two conditions for omitted variable bias.",
+      steps: [
+        { k: "The change", b: "<p>The coefficient on log GDP per head falls from 5.92 (Question 3) to 4.69.</p>" },
+        { k: "Condition 1: does it affect Y?", b: "<p>Yes. At the same income, being in Sub-Saharan Africa goes with lower life expectancy (sign −), for example through the disease burden, including HIV and malaria.</p>" },
+        { k: "Condition 2: is it correlated with X?", b: String.raw`<p>Yes: \(r(\text{lgdp}, \text{ssa}) = -0.62\) (sign −). Countries in the region are poorer.</p>` },
+        { k: "The direction", b: String.raw`\[ (-) \times (-) = (+) \]<span class="answer-line">Leaving out ssa biased the income coefficient upwards: part of the region's lower life expectancy was attributed to its lower income.</span>` },
+      ] },
+
+    // ================================================================== Question 6
+    { type: "section", eyebrow: "Question 6", title: "An Interaction",
+      text: "<p>Let the slope on log income differ inside and outside Sub-Saharan Africa.</p>" },
+
+    { type: "r", title: "6. Different slopes?",
+      desc: "Fit <code>lm(lifeexp ~ lgdp * ssa, data = d)</code>. What is the slope on lgdp inside and outside Sub-Saharan Africa?",
+      h1: "lgdp * ssa adds lgdp, ssa and their product lgdp:ssa. The product's coefficient is the difference between the two slopes.",
+      h2: "<code>summary(m4)</code>; the slope inside the region is <code>coef(m4)[\"lgdp\"] + coef(m4)[\"lgdp:ssa\"]</code>.",
+      h3: `m4 <- lm(lifeexp ~ lgdp * ssa, data = d)
+summary(m4)
+coef(m4)["lgdp"] + coef(m4)["lgdp:ssa"]        # slope inside Sub-Saharan Africa
+coeftest(m4, vcov = vcovHC(m4))`,
+      h3note: "Slope outside: 4.920. Interaction −1.131 (SE 0.755, p = 0.14; robust p = 0.41). Slope inside: 4.920 − 1.131 = 3.79.",
+      code: "# Let the slope differ by region\n" },
+
+    { type: "solution", label: "6", title: "Can the data tell the slopes apart?",
+      question: "What is the slope on lgdp inside and outside Sub-Saharan Africa? Can the data tell the two slopes apart?",
+      steps: [
+        { k: "The two slopes", b: "<p>Outside Sub-Saharan Africa: 4.92. Inside: 4.92 + (−1.13) = 3.79.</p>" },
+        { k: "Test the difference", b: String.raw`\[ t = \frac{-1.13}{0.755} = -1.5, \qquad p = 0.14 \quad (\text{robust } p = 0.41) \]` },
+        { k: "Conclude", b: "<span class='answer-line'>We cannot reject equal slopes: the data are consistent with the same income gradient in both groups, with a lower intercept in Sub-Saharan Africa (Question 5).</span>" },
+      ] },
+
+    // ================================================================== Question 7
+    { type: "section", eyebrow: "Question 7", title: "Health Spending",
+      text: "<p>Add the log of health spending per head to the model of Question 5, using the countries with data on all three variables.</p>" },
+
+    { type: "r", title: "7. Add health spending",
+      desc: "Fit the model of Question 5 on the countries with health data, then add <code>lhealth</code>. Compare the coefficient on lgdp and its standard error, and compute the correlation between lgdp and lhealth.",
+      h1: "Compare the two models on the same countries, so that only the added variable differs.",
+      h2: "<code>h &lt;- subset(d, !is.na(health))</code>; <code>h$lhealth &lt;- log(h$health)</code>; <code>cor(h$lgdp, h$lhealth)</code>.",
+      h3: `h <- subset(d, !is.na(health)); h$lhealth <- log(h$health)
+nrow(h)                                        # 186 countries
+summary(lm(lifeexp ~ lgdp + ssa, data = h))$coefficients
+m5 <- lm(lifeexp ~ lgdp + ssa + lhealth, data = h)
+summary(m5)$coefficients
+coeftest(m5, vcov = vcovHC(m5))
+cor(h$lgdp, h$lhealth)`,
+      h3note: "On the same 186 countries: lgdp 4.788 (SE 0.322) without health spending, 3.437 (SE 0.753) with it. lhealth: 1.261 (SE 0.636, p = 0.049; robust p = 0.14). R² 0.766 → 0.771. Correlation 0.94.",
+      code: "# Add log health spending per head\n" },
+
+    { type: "solution", label: "7(a)", title: "What happens to the income coefficient?",
+      question: "What happens to the coefficient on lgdp and to its standard error?",
+      steps: [
+        { k: "The numbers", b: "<table class='ptab'><tr><th></th><th>Without lhealth</th><th>With lhealth</th></tr><tr><td>lgdp</td><td>4.79</td><td>3.44</td></tr><tr><td>SE</td><td>0.32</td><td>0.75</td></tr><tr><td>R²</td><td>0.766</td><td>0.771</td></tr></table>" },
+        { k: "Read it", b: "<span class='answer-line'>The income coefficient falls and its standard error more than doubles, while R² barely moves.</span><p>lhealth: 1.26 (SE 0.64, p = 0.049; robust p = 0.14).</p>" },
+      ] },
+
+    { type: "solution", label: "7(b)", title: "Multicollinearity",
+      question: "Compute the correlation between log GDP per head and log health spending. Use it to explain (a).",
+      steps: [
+        { k: "The correlation", b: String.raw`<p>\(r(\text{lgdp}, \text{lhealth}) = 0.94\): richer countries spend more on health.</p>` },
+        { k: "Why the SE grows", b: "<p>The two variables carry almost the same information, so the regression cannot separate their effects well: multicollinearity.</p>" },
+        { k: "Is an assumption broken?", b: "<span class='answer-line'>No: only perfect multicollinearity violates the OLS assumptions. The estimates are still unbiased, but imprecise.</span><p>The fall in the income coefficient also suggests that part of the association between income and life expectancy runs through health spending.</p>" },
+      ] },
+
+    // ================================================================== Question 8
+    { type: "section", eyebrow: "Question 8", title: "Write It Up",
+      text: "<p>Report the main result in words, with its uncertainty, and say what the regression can and cannot show.</p>" },
+
+    { type: "solution", label: "8(a)", title: "Two sentences",
+      question: "Report the main result of Question 5 in two sentences, with its 95% confidence interval and the data you used.",
+      steps: [
+        { k: "The numbers", b: String.raw`<p>Twice as rich: \(4.69 \times \log 2 = 3.25\) years. Robust 95% interval for the slope, 4.02 to 5.35, times \(\log 2\): 2.8 to 3.7 years. Dummy: −5.4 years, robust interval −7.2 to −3.6.</p>` },
+        { k: "Write", b: "<span class='answer-line'>“Across 199 countries in 2019 (World Bank, World Development Indicators), comparing countries inside or outside Sub-Saharan Africa, a country twice as rich as another has a life expectancy about 3.2 years higher on average (95% CI 2.8 to 3.7 years, robust standard errors). At the same income, life expectancy in Sub-Saharan Africa is 5.4 years lower (95% CI 3.6 to 7.2 years).”</span>" },
+      ] },
+
+    { type: "solution", label: "8(b)", title: "Does income cause longer lives?",
+      question: "Can we conclude that higher income <i>causes</i> longer lives? Give two reasons why not.",
+      steps: [
+        { k: "Reverse causality", b: "<p>Healthier people work and learn more, so longer lives can raise income.</p>" },
+        { k: "Omitted variables", b: "<p>Institutions, education, sanitation and the disease environment affect both income and health; the regression controls only for one region.</p>" },
+        { k: "The data", b: "<p>A cross-section of countries, not a random sample, and the worst-measured countries are missing.</p>" },
+        { k: "Conclude", b: "<span class='answer-line'>The regression describes an association. A causal claim needs a theory of the mechanism and a design that rules out these alternatives.</span>" },
+      ] },
+  ],
+};
+</script>
+<script type="module" src="../assets/seminar.js?v=4"></script>
+</body>
+</html>
