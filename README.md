@@ -17,6 +17,7 @@ ps3/index.html       Problem Set 3: step-by-step solutions and the R questions
 ps4/index.html       Problem Set 4: step-by-step solutions and the R question
 ps5/index.html       Problem Set 5: step-by-step solutions and the R questions
 ps6/index.html       Problem Set 6: step-by-step solutions and the R questions
+ps7/index.html       Problem Set 7: R-based solutions (World Bank data, also in ps7/wdi_health_2019.csv)
 r-guide/index.html   a short guide to R for students, with runnable examples
 ```
 
